@@ -1,0 +1,50 @@
+#include <unet.h>
+#include <iostream>
+#include <string>
+
+void get(unet::net_core &con)
+{
+    static size_t no = 0;
+    char recv_buf[2048 * 4];
+    memset(recv_buf, 0, 2048);
+    no++;
+    std::string send_buf = std::string("HTTP/1.1 200 OK\r\n") +
+                           std::string("Set-Cookie: Sample_acc=accNo") +
+                           std::to_string(no).c_str() +
+                           std::string("\r\n") +
+                           std::string("Access-Control-Allow-Origin: *\r\n") +
+                           std::string("Accept-CH: Device-Memory, Viewport-Width, Sec-CH-UA-Arch, Sec-CH-UA-Platform-Version, Sec-CH-UA-Model\r\n") +
+                           std::string("\r\n") +
+                           std::string("<h1>hello</h1>") +
+                           std::to_string(no).c_str();
+
+    con.recv_data(recv_buf, 2048 * 4);
+    printf("%s \n%s\n", inet_ntoa(con.remote().sin_addr), recv_buf);
+    con.send_data((send_buf).c_str(), send_buf.size());
+    con.close_s();
+}
+
+int main()
+{
+    unet::netinit();
+
+    // Server
+
+    unet::ServerTCP svr(9090, get, unet::TCP_c, "server.crt", "server.key");
+    // svr.listen_p();
+
+    // Client_com
+
+    unet::Client_com cli("example.com", unet::SSL_c);
+    char data[] = "GET / HTTP/1.1\r\n"
+                  "Host: example.com\r\n"
+                  "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36\r\n"
+                  "Accept: */*\r\n"
+                  "Connection: close\r\n\r\n";
+    cli.send_data(data, strlen(data));
+
+    std::cout << cli.recv_all();
+
+
+    unet::netquit();
+}

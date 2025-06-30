@@ -1,0 +1,13 @@
+*.o
+*.a
+*.exe
+*.lib
+*.out
+*.crt
+*.pem
+*.csr
+*.dll
+*.tmp
+*.key
+.vscode
+build
