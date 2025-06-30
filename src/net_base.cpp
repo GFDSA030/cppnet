@@ -89,14 +89,14 @@ namespace unet
     }
     std::string net_base::recv_all() const noexcept
     {
-        char buffer[100] = {0};
-        memset(buffer, 0, sizeof(buffer));
+        char buffer[BUF_SIZE] = {0};
+        memset(buffer, 0, BUF_SIZE);
         std::string result;
         // receive all
-        while (recv_data(buffer, sizeof(buffer) - 1) > 0)
+        while (recv_data(buffer, BUF_SIZE - 1) > 0)
         {
             result += buffer;
-            memset(buffer, 0, sizeof(buffer));
+            memset(buffer, 0, BUF_SIZE);
         }
         return result;
     }
