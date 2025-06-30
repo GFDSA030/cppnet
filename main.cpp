@@ -12,8 +12,6 @@ void get(unet::net_core &con)
                            std::string("Set-Cookie: Sample_acc=accNo") +
                            std::to_string(no).c_str() +
                            std::string("\r\n") +
-                           std::string("Access-Control-Allow-Origin: *\r\n") +
-                           std::string("Accept-CH: Device-Memory, Viewport-Width, Sec-CH-UA-Arch, Sec-CH-UA-Platform-Version, Sec-CH-UA-Model\r\n") +
                            std::string("\r\n") +
                            std::string("<h1>hello</h1>") +
                            std::to_string(no).c_str();
@@ -44,7 +42,6 @@ int main()
     cli.send_data(data, strlen(data));
 
     std::cout << cli.recv_all();
-
 
     unet::netquit();
 }
