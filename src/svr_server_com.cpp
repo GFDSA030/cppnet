@@ -4,10 +4,11 @@
 #include <thread>
 namespace unet
 {
-    Server_com::Server_com(int port_, void (*fnc_)(net_core &), sock_type type_, const char *crt, const char *pem) noexcept
+    Server_com::Server_com(int port_, void (*fnc_)(net_core &), sock_type type_, const char *crt, const char *pem, bool thread_) noexcept
     {
         fnc = fnc_;
         type = type_;
+        thread_use = thread_;
 
         if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
@@ -98,7 +99,7 @@ namespace unet
                 }
             }
 #endif
-            run_fn(fnc, sockcli, client, type, ssl);
+            run_fn(fnc, sockcli, client, type, ssl, thread_use);
         }
         return success;
     }

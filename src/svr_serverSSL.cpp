@@ -5,9 +5,10 @@
 namespace unet
 {
 #ifdef SSL_AVILABLE
-    ServerSSL::ServerSSL(int port_, void (*fnc_)(net_core &), const char *crt, const char *pem) noexcept
+    ServerSSL::ServerSSL(int port_, void (*fnc_)(net_core &), const char *crt, const char *pem, bool thread_) noexcept
     {
         fnc = fnc_;
+        thread_use = thread_;
 
         if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
@@ -51,9 +52,10 @@ namespace unet
         }
     }
 
-    ServerSSL::ServerSSL(int port_, void (*fnc_)(net_core &), sock_type type_, const char *crt, const char *pem) noexcept
+    ServerSSL::ServerSSL(int port_, void (*fnc_)(net_core &), sock_type type_, const char *crt, const char *pem, bool thread_) noexcept
     {
         fnc = fnc_;
+        thread_use = thread_;
 
         if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
@@ -129,7 +131,7 @@ namespace unet
                 ERR_print_errors_fp(stderr);
                 continue;
             }
-            run_fn(fnc, sockcli, client, SSL_c, ssl);
+            run_fn(fnc, sockcli, client, SSL_c, ssl, thread_use);
         }
         return success;
     }

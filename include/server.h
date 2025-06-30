@@ -16,8 +16,10 @@ namespace unet
 
         SSL_CTX *ctx = nullptr;
 
+        bool thread_use = true;
+
     public:
-        Server_com(int port_, void (*fnc_)(net_core &), sock_type type_ = TCP_c, const char *crt = "", const char *pem = "") noexcept;
+        Server_com(int port_, void (*fnc_)(net_core &), sock_type type_ = TCP_c, const char *crt = "", const char *pem = "", bool thread_ = true) noexcept;
         ~Server_com();
         sock_type chenge_type(const sock_type type_) noexcept;
         int listen_p() noexcept;
@@ -35,9 +37,11 @@ namespace unet
 
         SSL_CTX *ctx = nullptr;
 
+        bool thread_use = true;
+
     public:
-        ServerSSL(int port_, void (*fnc_)(net_core &), const char *crt, const char *pem) noexcept;
-        ServerSSL(int port_, void (*fnc_)(net_core &), [[maybe_unused]] sock_type type_ = SSL_c, const char *crt = "", const char *pem = "") noexcept;
+        ServerSSL(int port_, void (*fnc_)(net_core &), const char *crt, const char *pem, bool thread_ = true) noexcept;
+        ServerSSL(int port_, void (*fnc_)(net_core &), [[maybe_unused]] sock_type type_ = SSL_c, const char *crt = "", const char *pem = "", bool thread_ = true) noexcept;
         ~ServerSSL();
         int listen_p() noexcept;
         int stop() noexcept;
@@ -51,9 +55,11 @@ namespace unet
         void (*fnc)(net_core &);
         bool cont = 1;
 
+        bool thread_use = true;
+
     public:
-        ServerTCP(int port_, void (*fnc_)(net_core &)) noexcept;
-        ServerTCP(int port_, void (*fnc_)(net_core &), [[maybe_unused]] sock_type type_ = TCP_c, [[maybe_unused]] const char *crt = "", [[maybe_unused]] const char *pem = "") noexcept;
+        ServerTCP(int port_, void (*fnc_)(net_core &), bool thread_ = true) noexcept;
+        ServerTCP(int port_, void (*fnc_)(net_core &), [[maybe_unused]] sock_type type_ = TCP_c, [[maybe_unused]] const char *crt = "", [[maybe_unused]] const char *pem = "", bool thread_ = true) noexcept;
         ~ServerTCP();
         int listen_p() noexcept;
         int stop() noexcept;

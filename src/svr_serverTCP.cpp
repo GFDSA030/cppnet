@@ -4,9 +4,10 @@
 #include <thread>
 namespace unet
 {
-    ServerTCP::ServerTCP(int port_, void (*fnc_)(net_core &)) noexcept
+    ServerTCP::ServerTCP(int port_, void (*fnc_)(net_core &), bool thread_) noexcept
     {
         fnc = fnc_;
+        thread_use = thread_;
 
         if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
@@ -28,9 +29,10 @@ namespace unet
         listen(sock, 25);
     }
 
-    ServerTCP::ServerTCP(int port_, void (*fnc_)(net_core &), sock_type type_, const char *crt, const char *pem) noexcept
+    ServerTCP::ServerTCP(int port_, void (*fnc_)(net_core &), sock_type type_, const char *crt, const char *pem, bool thread_) noexcept
     {
         fnc = fnc_;
+        thread_use = thread_;
 
         if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
@@ -71,7 +73,7 @@ namespace unet
             ioctl(sock, FIONBIO, &val);
 #endif // BLOCKING
 
-            run_fn(fnc, sockcli, client, TCP_c, nullptr);
+            run_fn(fnc, sockcli, client, TCP_c, nullptr, thread_use);
         }
         return success;
     }
