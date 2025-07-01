@@ -1,4 +1,4 @@
-# cppserver_linux 日本語ドキュメント
+# cppnet 日本語ドキュメント
 
 [English version](README_en.md)
 
@@ -29,8 +29,13 @@ apt install -y clang gcc libssl-dev make
 ## ビルド方法
 
 ```bash
-git clone https://github.com/GFDSA030/cppserver_linux.git cpp-net
-cd cpp-net
+git clone https://github.com/GFDSA030/cppnet.git cppnet
+```
+
+Makefile に openssl のパスを設定する必要があります。Makefile の`IFILE`にヘッダへのパスを`LFILE`にライブラリへのパスを適切に設定してください。
+
+```bash
+cd cppnet
 make
 ```
 
@@ -44,7 +49,7 @@ make
 
 ### 主なクラス
 
-- `unet::net_base` : サーバ・クライアント共通の基底クラス（派生クラスとして使用）
+- `unet::net_core` : サーバ共通の通信クラス
 - `unet::ServerTCP` : TCP サーバクラス
 - `unet::ServerSSL` : SSL サーバクラス
 - `unet::Server_com` : 複数種別対応サーバクラス（オーバーヘッド有）
@@ -53,20 +58,6 @@ make
 - `unet::Client_com` : 複数種別対応クライアントクラス（オーバーヘッド有）
 
 ## クラス別サンプル
-
-### unet::net_base（基底クラス）
-
-```cpp
-#include <unet.h>
-#include <iostream>
-int main() {
-    unet::netinit();
-    unet::net_base base;
-    // 基本的なソケット操作が可能
-    base.close_s();
-    unet::netquit();
-}
-```
 
 ### unet::ServerTCP（TCP サーバ）
 
@@ -162,6 +153,40 @@ int main() {
     unet::Client_com cli("localhost", unet::TCP_c, 9090);
     cli.send_data("Hello Server_com", 16);
     std::cout << cli.recv_all() << std::endl;
+    cli.close_s();
+    unet::netquit();
+}
+```
+
+### unet::ServerUDP（UDP サーバ）
+
+```cpp
+#include <server.h>
+#include <iostream>
+int main() {
+    unet::netinit();
+    unet::ServerUDP svr(8000);
+    char buf[1024];
+    int len = svr.recv_data(buf, sizeof(buf));
+    std::cout << "受信: " << std::string(buf, len) << std::endl;
+    svr.send_data("Hello UDP!", 10);
+    svr.close_s();
+    unet::netquit();
+}
+```
+
+### unet::ClientUDP（UDP クライアント）
+
+```cpp
+#include <client.h>
+#include <iostream>
+int main() {
+    unet::netinit();
+    unet::ClientUDP cli("localhost", 8000);
+    cli.send_data("Hello UDP server", 17);
+    char buf[1024];
+    int len = cli.recv_data(buf, sizeof(buf));
+    std::cout << std::string(buf, len) << std::endl;
     cli.close_s();
     unet::netquit();
 }

@@ -1,10 +1,10 @@
-# cppserver_linux Documentation (English)
+# cppnet Documentation (English)
 
 [Japanese version](README.md)
 
 ## Overview
 
-cppserver_linux is a cross-platform C++ network library for easily building TCP/UDP/SSL servers and clients.
+cppnet is a cross-platform C++ network library for easily building TCP/UDP/SSL servers and clients.
 
 ## Features
 
@@ -29,8 +29,13 @@ apt install -y clang gcc libssl-dev make
 ## Build Instructions
 
 ```bash
-git clone https://github.com/GFDSA030/cppserver_linux.git cpp-net
-cd cpp-net
+git clone https://github.com/GFDSA030/cppnet.git cppnet
+```
+
+You need to set the OpenSSL path in the Makefile. Set the header path to `IFILE` and the library path to `LFILE` as appropriate for your environment.
+
+```bash
+cd cppnet
 make
 ```
 
@@ -44,7 +49,7 @@ make
 
 ### Main Classes
 
-- `unet::net_base` : Base class for server/client (used as a base class)
+- `unet::net_core` : common communication class for server
 - `unet::ServerTCP` : TCP server class
 - `unet::ServerSSL` : SSL server class
 - `unet::Server_com` : Multi-type server class (with overhead)
@@ -53,20 +58,6 @@ make
 - `unet::Client_com` : Multi-type client class (with overhead)
 
 ## Class Examples
-
-### unet::net_base (Base Class)
-
-```cpp
-#include <unet.h>
-#include <iostream>
-int main() {
-    unet::netinit();
-    unet::net_base base;
-    // Basic socket operations
-    base.close_s();
-    unet::netquit();
-}
-```
 
 ### unet::ServerTCP (TCP Server)
 
@@ -162,6 +153,40 @@ int main() {
     unet::Client_com cli("localhost", unet::TCP_c, 9090);
     cli.send_data("Hello Server_com", 16);
     std::cout << cli.recv_all() << std::endl;
+    cli.close_s();
+    unet::netquit();
+}
+```
+
+### unet::ServerUDP (UDP Server)
+
+```cpp
+#include <server.h>
+#include <iostream>
+int main() {
+    unet::netinit();
+    unet::ServerUDP svr(8000);
+    char buf[1024];
+    int len = svr.recv_data(buf, sizeof(buf));
+    std::cout << "Received: " << std::string(buf, len) << std::endl;
+    svr.send_data("Hello UDP!", 10);
+    svr.close_s();
+    unet::netquit();
+}
+```
+
+### unet::ClientUDP (UDP Client)
+
+```cpp
+#include <client.h>
+#include <iostream>
+int main() {
+    unet::netinit();
+    unet::ClientUDP cli("localhost", 8000);
+    cli.send_data("Hello UDP server", 17);
+    char buf[1024];
+    int len = cli.recv_data(buf, sizeof(buf));
+    std::cout << std::string(buf, len) << std::endl;
     cli.close_s();
     unet::netquit();
 }
