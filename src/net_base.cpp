@@ -87,6 +87,29 @@ namespace unet
     {
         return recv_m(buf, len);
     }
+
+    int net_base::send_data(const std::string &data, size_t len) const noexcept
+    {
+        if (len == 0)
+            len = data.size();
+        if (len == 0)
+            return 0;
+        return send_m(data.c_str(), len);
+    }
+    int net_base::recv_data(std::string &buf, size_t len) const noexcept
+    {
+        if (len == 0)
+            return 0;
+        char *buffer = new char[len];
+        memset(buffer, 0, len);
+        int ret = recv_m(buffer, len);
+        if (ret > 0)
+        {
+            buf.assign(buffer, ret);
+        }
+        delete[] buffer;
+        return ret;
+    }
     std::string net_base::recv_all() const noexcept
     {
         char buffer[BUF_SIZE] = {0};

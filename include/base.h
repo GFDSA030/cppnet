@@ -40,6 +40,8 @@ namespace unet
     public:
         int send_data(const void *data, size_t len = 0) const noexcept;
         int recv_data(void *buf, size_t len) const noexcept;
+        int send_data(const std::string &data, size_t len = 0) const noexcept;
+        int recv_data(std::string &buf, size_t len) const noexcept;
         std::string recv_all() const noexcept;
         int close_s() noexcept;
     };
