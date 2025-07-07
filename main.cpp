@@ -35,8 +35,7 @@ int main()
     // Client_com
     std::string target = "example.com";
     unet::Client_com cli(target.c_str(), unet::SSL_c);
-    std::string data = unet::get_http_request_header("GET", "/", target);
-    cli.send_data(data, data.size());
+    cli.send_data(unet::get_http_request_header("GET", "/", target));
 
     // std::cout << cli.recv_all();
     std::cout << unet::extract_http_body(cli.recv_all()) << std::endl;
