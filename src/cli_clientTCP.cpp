@@ -16,10 +16,10 @@ namespace unet
         addr.sin_family = AF_INET;
 
         sock = socket(AF_INET, SOCK_STREAM, 0);
-#ifndef BLOCKING
+#ifndef NETCPP_BLOCKING
         u_long val = 1;
         ioctl(sock, FIONBIO, &val);
-#endif // BLOCKING
+#endif // NETCPP_BLOCKING
         connect(sock, (struct sockaddr *)&addr, sizeof(addr));
         this_status = online;
     }
@@ -32,10 +32,10 @@ namespace unet
         addr.sin_family = AF_INET;
 
         sock = socket(AF_INET, SOCK_STREAM, 0);
-#ifndef BLOCKING
+#ifndef NETCPP_BLOCKING
         u_long val = 1;
         ioctl(sock, FIONBIO, &val);
-#endif // BLOCKING
+#endif // NETCPP_BLOCKING
         this_status = online;
         return connect(sock, (struct sockaddr *)&addr, sizeof(addr));
     }

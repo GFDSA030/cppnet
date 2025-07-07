@@ -29,7 +29,7 @@ namespace unet
         }
         listen(sock, 25);
 
-#ifdef SSL_AVAILABLE
+#ifdef NETCPP_SSL_AVAILABLE
         if (type != SSL_c)
             return;
         ctx = SSL_CTX_new(TLS_server_method());
@@ -61,7 +61,7 @@ namespace unet
 
     Server_com::~Server_com()
     {
-#ifdef SSL_AVAILABLE
+#ifdef NETCPP_SSL_AVAILABLE
         if (ctx != nullptr)
         {
             SSL_CTX_free(ctx);
@@ -80,13 +80,13 @@ namespace unet
         {
             len = sizeof(client);
             sockcli = accept(sock, (struct sockaddr *)&client, &len);
-#ifndef BLOCKING
+#ifndef NETCPP_BLOCKING
             u_long val = 1;
             ioctl(sock, FIONBIO, &val);
-#endif // BLOCKING
+#endif // NETCPP_BLOCKING
 
             SSL *ssl = nullptr;
-#ifdef SSL_AVAILABLE
+#ifdef NETCPP_SSL_AVAILABLE
             if (type == SSL_c)
             {
                 ssl = SSL_new(ctx);

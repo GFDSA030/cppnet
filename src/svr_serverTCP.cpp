@@ -68,10 +68,10 @@ namespace unet
         {
             len = sizeof(client);
             sockcli = accept(sock, (struct sockaddr *)&client, &len);
-#ifndef BLOCKING
+#ifndef NETCPP_BLOCKING
             u_long val = 1;
             ioctl(sock, FIONBIO, &val);
-#endif // BLOCKING
+#endif // NETCPP_BLOCKING
 
             run_fn(fnc, sockcli, client, TCP_c, nullptr, thread_use);
         }

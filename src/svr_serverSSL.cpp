@@ -4,7 +4,7 @@
 #include <thread>
 namespace unet
 {
-#ifdef SSL_AVAILABLE
+#ifdef NETCPP_SSL_AVAILABLE
     ServerSSL::ServerSSL(int port_, void (*fnc_)(net_core &), const char *crt, const char *pem, bool thread_) noexcept
     {
         fnc = fnc_;
@@ -118,10 +118,10 @@ namespace unet
         {
             len = sizeof(client);
             sockcli = accept(sock, (struct sockaddr *)&client, &len);
-#ifndef BLOCKING
+#ifndef NETCPP_BLOCKING
             u_long val = 1;
             ioctl(sock, FIONBIO, &val);
-#endif // BLOCKING
+#endif // NETCPP_BLOCKING
 
             SSL *ssl = SSL_new(ctx);
             SSL_set_fd(ssl, sockcli);

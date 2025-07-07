@@ -26,7 +26,7 @@ namespace unet
         int stop() noexcept;
     };
 
-#ifdef SSL_AVAILABLE
+#ifdef NETCPP_SSL_AVAILABLE
     class ServerSSL
     {
     private:

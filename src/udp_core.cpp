@@ -21,10 +21,10 @@ namespace unet
             perror("socket");
             exit(EXIT_FAILURE);
         }
-#ifndef BLOCKING
+#ifndef NETCPP_BLOCKING
         u_long val = 1;
         ioctl(sock, FIONBIO, &val);
-#endif // BLOCKING
+#endif // NETCPP_BLOCKING
         udp_no++;
     }
 

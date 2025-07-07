@@ -2,9 +2,9 @@
 #define NETDEFS
 // define here
 
-#define SSL_AVAILABLE
+#define NETCPP_SSL_AVAILABLE
 
-#define BLOCKING
+#define NETCPP_BLOCKING
 
 //
 
@@ -45,7 +45,7 @@
 
 #endif // OS
 
-#ifdef SSL_AVAILABLE
+#ifdef NETCPP_SSL_AVAILABLE
 
 #include <openssl/err.h>
 #include <openssl/ssl.h>
@@ -53,9 +53,9 @@ namespace unet
 {
     constexpr bool __SSL = 0;
 }
-#define sslfnc(fnc, ...) fnc(__VA_ARGS__);
+#define NETCPP_sslfnc(fnc, ...) fnc(__VA_ARGS__);
 
-#else // SSL_AVAILABLE
+#else // NETCPP_SSL_AVAILABLE
 
 #pragma message("SSL is disabled")
 namespace unet
@@ -64,9 +64,9 @@ namespace unet
     typedef char SSL;
     typedef char SSL_CTX;
 }
-#define sslfnc(fnc, ...) 0;
+#define NETCPP_sslfnc(fnc, ...) 0;
 
-#endif // SSL_AVAILABLE
+#endif // NETCPP_SSL_AVAILABLE
 
 #include <sys/types.h>
 #include <string.h>
@@ -77,8 +77,8 @@ namespace unet
 
 static volatile unsigned long long testno = 0;
 
-//[[deprecated("dbugflag is used! This will print debug information.")]]
-#define dbugflag printf("file:%s  line:%d  no:%llu  \n", __FILE__, __LINE__, testno++);
+//[[deprecated("DEBUG_PRINT is used! This will print debug information.")]]
+#define DEBUG_PRINT printf("file:%s  line:%d  no:%llu  \n", __FILE__, __LINE__, testno++);
 
 namespace unet
 {

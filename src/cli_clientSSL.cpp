@@ -4,7 +4,7 @@
 #include <thread>
 namespace unet
 {
-#ifdef SSL_AVAILABLE
+#ifdef NETCPP_SSL_AVAILABLE
     ClientSSL::ClientSSL() noexcept
     {
     }
@@ -17,10 +17,10 @@ namespace unet
         addr.sin_family = AF_INET;
 
         sock = socket(AF_INET, SOCK_STREAM, 0);
-#ifndef BLOCKING
+#ifndef NETCPP_BLOCKING
         u_long val = 1;
         ioctl(sock, FIONBIO, &val);
-#endif // BLOCKING
+#endif // NETCPP_BLOCKING
         connect(sock, (struct sockaddr *)&addr, sizeof(addr));
 
         ctx = SSL_CTX_new(TLS_client_method());
@@ -41,10 +41,10 @@ namespace unet
         addr.sin_family = AF_INET;
 
         sock = socket(AF_INET, SOCK_STREAM, 0);
-#ifndef BLOCKING
+#ifndef NETCPP_BLOCKING
         u_long val = 1;
         ioctl(sock, FIONBIO, &val);
-#endif // BLOCKING
+#endif // NETCPP_BLOCKING
         connect(sock, (struct sockaddr *)&addr, sizeof(addr));
 
         ctx = SSL_CTX_new(TLS_client_method());
@@ -61,5 +61,5 @@ namespace unet
     {
         close_m();
     }
-#endif // SSL_AVAILABLE
+#endif // NETCPP_SSL_AVAILABLE
 }

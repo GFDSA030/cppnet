@@ -26,7 +26,7 @@ namespace unet
         int connect_s(const char *addr_, const int port_ = 80) noexcept;
         ~ClientTCP();
     };
-#ifdef SSL_AVAILABLE
+#ifdef NETCPP_SSL_AVAILABLE
     class ClientSSL : public net_base
     {
     private:
@@ -36,6 +36,6 @@ namespace unet
         int connect_s(const char *addr_, const int port_ = 443) noexcept;
         ~ClientSSL();
     };
-#endif // SSL_AVAILABLE
+#endif // NETCPP_SSL_AVAILABLE
 }
 #endif

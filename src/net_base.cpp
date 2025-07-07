@@ -9,10 +9,10 @@ namespace unet
     {
         if (this_status == offline)
             return error;
-#ifdef SSL_AVAILABLE
+#ifdef NETCPP_SSL_AVAILABLE
         if (type == SSL_c)
             return SSL_write(ssl, (char *)data, len);
-#endif // SSL_AVAILABLE
+#endif // NETCPP_SSL_AVAILABLE
         return send(sock, (char *)data, len, 0);
     }
 
@@ -20,10 +20,10 @@ namespace unet
     {
         if (this_status == offline)
             return error;
-#ifdef SSL_AVAILABLE
+#ifdef NETCPP_SSL_AVAILABLE
         if (type == SSL_c)
             return SSL_read(ssl, (char *)buf, len);
-#endif // SSL_AVAILABLE
+#endif // NETCPP_SSL_AVAILABLE
         return recv(sock, (char *)buf, len, 0);
     }
 
@@ -31,7 +31,7 @@ namespace unet
     {
         if (this_status == offline)
             return error;
-#ifdef SSL_AVAILABLE
+#ifdef NETCPP_SSL_AVAILABLE
         if (ctx != nullptr)
         {
             SSL_CTX_free(ctx);
@@ -43,7 +43,7 @@ namespace unet
             SSL_free(ssl);
             ssl = nullptr;
         }
-#endif // SSL_AVAILABLE
+#endif // NETCPP_SSL_AVAILABLE
 
         this_status = offline;
         shutdown(sock, SHUT_RW);
