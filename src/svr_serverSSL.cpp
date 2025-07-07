@@ -4,7 +4,7 @@
 #include <thread>
 namespace unet
 {
-#ifdef SSL_AVILABLE
+#ifdef SSL_AVAILABLE
     ServerSSL::ServerSSL(int port_, void (*fnc_)(net_core &), const char *crt, const char *pem, bool thread_) noexcept
     {
         fnc = fnc_;

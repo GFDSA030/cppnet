@@ -4,7 +4,7 @@
 #include <thread>
 namespace unet
 {
-#ifdef SSL_AVILABLE
+#ifdef SSL_AVAILABLE
     ClientSSL::ClientSSL() noexcept
     {
     }
@@ -61,5 +61,5 @@ namespace unet
     {
         close_m();
     }
-#endif // SSL_AVILABLE
+#endif // SSL_AVAILABLE
 }

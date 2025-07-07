@@ -6,7 +6,7 @@
 namespace unet
 {
 
-#ifdef SSL_AVILABLE
+#ifdef SSL_AVAILABLE
 
 #ifdef __WIN32
 
@@ -37,7 +37,7 @@ namespace unet
 
 #endif //__WIN32
 
-#else // SSL_AVILABLE
+#else // SSL_AVAILABLE
 
 #ifdef __WIN32
 
@@ -62,7 +62,7 @@ namespace unet
 
 #endif //__WIN32
 
-#endif // SSL_AVILABLE
+#endif // SSL_AVAILABLE
 
     int getipaddr(const char *addr_, struct sockaddr_in &ret) noexcept
     {

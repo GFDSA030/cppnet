@@ -13,7 +13,7 @@ namespace unet
         Client_com() noexcept;
         Client_com(const char *addr_, const sock_type type_, const int port_ = -1) noexcept;
         int connect_s(const char *addr_, const sock_type type_, const int port_ = -1) noexcept;
-        sock_type chenge_type(const sock_type type_) noexcept;
+        sock_type change_type(const sock_type type_) noexcept;
         ~Client_com();
     };
 
@@ -26,7 +26,7 @@ namespace unet
         int connect_s(const char *addr_, const int port_ = 80) noexcept;
         ~ClientTCP();
     };
-#ifdef SSL_AVILABLE
+#ifdef SSL_AVAILABLE
     class ClientSSL : public net_base
     {
     private:
@@ -36,6 +36,6 @@ namespace unet
         int connect_s(const char *addr_, const int port_ = 443) noexcept;
         ~ClientSSL();
     };
-#endif // SSL_AVILABLE
+#endif // SSL_AVAILABLE
 }
 #endif

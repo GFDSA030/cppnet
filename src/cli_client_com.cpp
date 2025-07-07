@@ -21,7 +21,7 @@ namespace unet
 #endif // BLOCKING
         connect(sock, (struct sockaddr *)&addr, sizeof(addr));
 
-#ifdef SSL_AVILABLE
+#ifdef SSL_AVAILABLE
         if (type == SSL_c)
         {
             ctx = SSL_CTX_new(TLS_client_method());
@@ -35,7 +35,7 @@ namespace unet
 #else
         if (type_ == SSL_c)
             fprintf(stderr, "ssl isn't avilable\n");
-#endif // SSL_AVILABLE
+#endif // SSL_AVAILABLE
         this_status = online;
     }
 
@@ -55,7 +55,7 @@ namespace unet
 #endif // BLOCKING
         int ret = connect(sock, (struct sockaddr *)&addr, sizeof(addr));
 
-#ifdef SSL_AVILABLE
+#ifdef SSL_AVAILABLE
         if (type == SSL_c)
         {
             ctx = SSL_CTX_new(TLS_client_method());
@@ -69,12 +69,12 @@ namespace unet
 #else
         if (type_ == SSL_c)
             fprintf(stderr, "ssl isn't avilable\n");
-#endif // SSL_AVILABLE
+#endif // SSL_AVAILABLE
         this_status = online;
         return ret;
     }
 
-    sock_type Client_com::chenge_type(const sock_type type_) noexcept
+    sock_type Client_com::change_type(const sock_type type_) noexcept
     {
         if (type < 0 || type_ == unknown)
         {

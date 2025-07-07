@@ -29,7 +29,7 @@ namespace unet
         }
         listen(sock, 25);
 
-#ifdef SSL_AVILABLE
+#ifdef SSL_AVAILABLE
         if (type != SSL_c)
             return;
         ctx = SSL_CTX_new(TLS_server_method());
@@ -61,7 +61,7 @@ namespace unet
 
     Server_com::~Server_com()
     {
-#ifdef SSL_AVILABLE
+#ifdef SSL_AVAILABLE
         if (ctx != nullptr)
         {
             SSL_CTX_free(ctx);
@@ -86,7 +86,7 @@ namespace unet
 #endif // BLOCKING
 
             SSL *ssl = nullptr;
-#ifdef SSL_AVILABLE
+#ifdef SSL_AVAILABLE
             if (type == SSL_c)
             {
                 ssl = SSL_new(ctx);
@@ -104,7 +104,7 @@ namespace unet
         return success;
     }
 
-    sock_type Server_com::chenge_type(const sock_type type_) noexcept
+    sock_type Server_com::change_type(const sock_type type_) noexcept
     {
         if (type < 0 || type_ == unknown)
         {

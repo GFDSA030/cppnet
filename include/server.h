@@ -21,12 +21,12 @@ namespace unet
     public:
         Server_com(int port_, void (*fnc_)(net_core &), sock_type type_ = TCP_c, const char *crt = "", const char *pem = "", bool thread_ = true) noexcept;
         ~Server_com();
-        sock_type chenge_type(const sock_type type_) noexcept;
+        sock_type change_type(const sock_type type_) noexcept;
         int listen_p() noexcept;
         int stop() noexcept;
     };
 
-#ifdef SSL_AVILABLE
+#ifdef SSL_AVAILABLE
     class ServerSSL
     {
     private:

@@ -2,7 +2,7 @@
 #define NETDEFS
 // define here
 
-#define SSL_AVILABLE
+#define SSL_AVAILABLE
 
 #define BLOCKING
 
@@ -45,7 +45,7 @@
 
 #endif // OS
 
-#ifdef SSL_AVILABLE
+#ifdef SSL_AVAILABLE
 
 #include <openssl/err.h>
 #include <openssl/ssl.h>
@@ -55,7 +55,7 @@ namespace unet
 }
 #define sslfnc(fnc, ...) fnc(__VA_ARGS__);
 
-#else // SSL_AVILABLE
+#else // SSL_AVAILABLE
 
 #pragma message("SSL is disabled")
 namespace unet
@@ -66,7 +66,7 @@ namespace unet
 }
 #define sslfnc(fnc, ...) 0;
 
-#endif // SSL_AVILABLE
+#endif // SSL_AVAILABLE
 
 #include <sys/types.h>
 #include <string.h>
@@ -102,4 +102,4 @@ namespace unet
 
 } // namespace unet
 
-#endif // DEFS
+#endif // NETDEFS
