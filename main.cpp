@@ -1,4 +1,5 @@
 #include <unet.h>
+#include <http.h>
 #include <iostream>
 #include <string>
 
@@ -32,16 +33,13 @@ int main()
     // svr.listen_p();
 
     // Client_com
+    std::string target = "example.com";
+    unet::Client_com cli(target.c_str(), unet::SSL_c);
+    std::string data = unet::get_http_request_header("GET", "/", target);
+    cli.send_data(data, data.size());
 
-    unet::Client_com cli("example.com", unet::SSL_c);
-    char data[] = "GET / HTTP/1.1\r\n"
-                  "Host: example.com\r\n"
-                  "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36\r\n"
-                  "Accept: */*\r\n"
-                  "Connection: close\r\n\r\n";
-    cli.send_data(data, strlen(data));
-
-    std::cout << cli.recv_all();
+    // std::cout << cli.recv_all();
+    std::cout << unet::extract_http_body(cli.recv_all()) << std::endl;
 
     unet::netquit();
 }
