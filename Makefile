@@ -5,14 +5,14 @@ LFILE = -LD:\dev\lib\mingw\openssl\lib
 LIBS = -L. -lssl -lcrypto -lCrypt32 -pthread -lws2_32 -Wl,-s -static -static-libgcc -static-libstdc++ -fuse-ld=lld $(LFILE)
 MINLIB = -L. -lssl -lcrypto -lCrypt32 -pthread -lws2_32 -Wl,-s -fuse-ld=lld $(LFILE)
 #add msys package
-CFLAG = -I. -Iinclude -Wall -O2 $(IFILE)
+CFLAG = -I. -Iinclude -Wall -O2 -std=c++20 $(IFILE)
 AR = ar
 else
 CC = clang++
 IFILE =
 LFILE =
 LIBS = -L. -lssl -lcrypto -pthread -Wl,-s $(LFILE)
-CFLAG = -I. -Iinclude -Wall -O2 $(IFILE)
+CFLAG = -I. -Iinclude -Wall -O2 -std=c++20 $(IFILE)
 AR = ar
 endif
 
