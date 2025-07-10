@@ -25,8 +25,6 @@ void get(unet::net_core &con)
 
 int main()
 {
-    unet::netinit();
-
     // Server
 
     unet::ServerTCP svr(9090, get, unet::TCP_c, "server.crt", "server.key");
@@ -39,6 +37,4 @@ int main()
 
     // std::cout << cli.recv_all();
     std::cout << unet::extract_http_body(cli.recv_all()) << std::endl;
-
-    unet::netquit();
 }
