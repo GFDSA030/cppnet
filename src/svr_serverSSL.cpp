@@ -7,6 +7,7 @@ namespace unet
 #ifdef NETCPP_SSL_AVAILABLE
     ServerSSL::ServerSSL(int port_, void (*fnc_)(net_core &), const char *crt, const char *pem, bool thread_) noexcept
     {
+        netcpp_start();
         fnc = fnc_;
         thread_use = thread_;
 
@@ -54,6 +55,7 @@ namespace unet
 
     ServerSSL::ServerSSL(int port_, void (*fnc_)(net_core &), sock_type type_, const char *crt, const char *pem, bool thread_) noexcept
     {
+        netcpp_start();
         fnc = fnc_;
         thread_use = thread_;
 
@@ -107,6 +109,7 @@ namespace unet
             ctx = nullptr;
         }
         close(sock);
+        netcpp_stop();
     }
 
     int ServerSSL::listen_p() noexcept

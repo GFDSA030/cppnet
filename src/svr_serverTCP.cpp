@@ -6,6 +6,7 @@ namespace unet
 {
     ServerTCP::ServerTCP(int port_, void (*fnc_)(net_core &), bool thread_) noexcept
     {
+        netcpp_start();
         fnc = fnc_;
         thread_use = thread_;
 
@@ -31,6 +32,7 @@ namespace unet
 
     ServerTCP::ServerTCP(int port_, void (*fnc_)(net_core &), sock_type type_, const char *crt, const char *pem, bool thread_) noexcept
     {
+        netcpp_start();
         fnc = fnc_;
         thread_use = thread_;
 
@@ -57,6 +59,7 @@ namespace unet
     ServerTCP::~ServerTCP()
     {
         close(sock);
+        netcpp_stop();
     }
 
     int ServerTCP::listen_p() noexcept

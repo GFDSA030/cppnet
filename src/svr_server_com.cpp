@@ -6,6 +6,7 @@ namespace unet
 {
     Server_com::Server_com(int port_, void (*fnc_)(net_core &), sock_type type_, const char *crt, const char *pem, bool thread_) noexcept
     {
+        netcpp_start();
         fnc = fnc_;
         type = type_;
         thread_use = thread_;
@@ -69,6 +70,7 @@ namespace unet
         }
 #endif
         close(sock);
+        netcpp_stop();
     }
 
     int Server_com::listen_p() noexcept

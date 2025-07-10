@@ -52,6 +52,7 @@ namespace unet
 
     net_base::net_base() noexcept
     {
+        netcpp_start();
         base_no++;
         base_len++;
         this_no = base_no;
@@ -60,6 +61,7 @@ namespace unet
     {
         base_len--;
         close_m();
+        netcpp_stop();
     }
     size_t net_base::base_no = 0;
     size_t net_base::base_len = 0;
