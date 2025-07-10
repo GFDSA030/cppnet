@@ -44,8 +44,9 @@ namespace unet
 {
     void run_fn(void (*fnc_)(net_core &), int socket, const struct sockaddr_in cli, sock_type type_, SSL *ssl_, bool thread_) noexcept;
     int startGC();
-    int netcpp_start();
-    int netcpp_stop();
+    int netcpp_start() noexcept;
+    int netcpp_stop()noexcept;
+    int netcpp_setstatus(status s)noexcept;
     int setthread(std::thread *p);
     int freethread(std::thread *p);
 } // namespace unet

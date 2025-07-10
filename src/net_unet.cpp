@@ -13,6 +13,7 @@ namespace unet
     WSADATA data;
     void netinit() noexcept
     {
+        netcpp_setstatus(online);
         WSAStartup(MAKEWORD(2, 2), &data);
         SSL_load_error_strings();
         SSL_library_init();
@@ -21,18 +22,21 @@ namespace unet
     {
         ERR_free_strings();
         WSACleanup();
+        netcpp_setstatus(offline);
     }
 
 #else //__WIN32
 
     void netinit() noexcept
     {
+        netcpp_setstatus(online);
         SSL_load_error_strings();
         SSL_library_init();
     }
     void netquit() noexcept
     {
         ERR_free_strings();
+        netcpp_setstatus(offline);
     }
 
 #endif //__WIN32
@@ -44,20 +48,24 @@ namespace unet
     WSADATA data;
     void netinit() noexcept
     {
+        netcpp_setstatus(online);
         WSAStartup(MAKEWORD(2, 0), &data);
     }
     void netquit() noexcept
     {
         WSACleanup();
+        netcpp_setstatus(offline);
     }
 
 #else //__WIN32
 
     void netinit() noexcept
     {
+        netcpp_setstatus(online);
     }
     void netquit() noexcept
     {
+        netcpp_setstatus(offline);
     }
 
 #endif //__WIN32

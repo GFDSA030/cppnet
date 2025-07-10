@@ -22,29 +22,38 @@ namespace unet
         }
     }
 
-    static status s = offline;
-    static size_t using_no = 0;
-    int netcpp_start()
+    status netcpp_status = offline;
+    size_t netcpp_using_no = 0;
+    int netcpp_start() noexcept
     {
-        if (s == offline)
+        netcpp_using_no++;
+        if (netcpp_status == offline)
         {
             netinit();
-            s = online;
-            using_no++;
+            netcpp_status = online;
             return success;
         }
         return success;
     }
-    int netcpp_stop()
+    int netcpp_stop() noexcept
     {
-        using_no--;
-        if ((s == online) && (using_no == 0))
+        netcpp_using_no--;
+        if ((netcpp_status == online) && (netcpp_using_no == 0))
         {
             netquit();
-            s = offline;
+            netcpp_status = offline;
             return success;
         }
         return success;
+    }
+    int netcpp_setstatus(status s) noexcept
+    {
+        if (s == online || s == offline)
+        {
+            netcpp_status = s;
+            return success;
+        }
+        return error;
     }
     int startGC()
     {
