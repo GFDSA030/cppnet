@@ -48,9 +48,16 @@ namespace unet
     }
     int netcpp_setstatus(status s) noexcept
     {
-        if (s == online || s == offline)
+        if (s == online)
         {
             netcpp_status = s;
+            netcpp_using_no++;
+            return success;
+        }
+        if (s == offline)
+        {
+            netcpp_status = s;
+            netcpp_using_no--;
             return success;
         }
         return error;
