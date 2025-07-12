@@ -45,8 +45,8 @@ namespace unet
 
         int set_type(sock_type type_) noexcept;
 
-        size_t get_base_no() const noexcept;
-        size_t get_base_len() const noexcept;
+        static size_t get_base_no() noexcept;
+        static size_t get_base_len() noexcept;
         size_t get_this_no() const noexcept;
 
     public:

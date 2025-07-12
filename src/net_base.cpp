@@ -148,11 +148,11 @@ namespace unet
     size_t net_base::base_no = 0;
     size_t net_base::base_len = 0;
 
-    size_t net_base::get_base_no() const noexcept
+    size_t net_base::get_base_no() noexcept
     {
         return base_no;
     }
-    size_t net_base::get_base_len() const noexcept
+    size_t net_base::get_base_len() noexcept
     {
         return base_len;
     }
