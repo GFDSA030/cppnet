@@ -18,7 +18,7 @@ void get(unet::net_core &con)
                            std::to_string(no).c_str();
 
     con.recv_data(recv_buf, 2048 * 4);
-    printf("%s \n%s\n", inet_ntoa(con.remote().sin_addr), recv_buf);
+    // printf("%s \n%s\n", inet_ntoa(con.remote().sin_addr), recv_buf);
     con.send_data((send_buf).c_str(), send_buf.size());
     con.close_s();
 }
@@ -28,7 +28,7 @@ int main()
     // Server
 
     unet::ServerTCP svr(9090, get, unet::TCP_c, "server.crt", "server.key");
-    // svr.listen_p();
+    svr.listen_p(0);
 
     // Client_com
     std::string target = "example.com";
@@ -37,4 +37,10 @@ int main()
 
     // std::cout << cli.recv_all();
     std::cout << unet::extract_http_body(cli.recv_all()) << std::endl;
+    while (1)
+    {
+        std::cout << "Waiting for connections..." << svr.get_connection_len() << " " << svr.get_connection_no() << std::endl;
+        // wait for server
+        usleep(1);
+    }
 }

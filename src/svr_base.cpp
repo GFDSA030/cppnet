@@ -25,11 +25,10 @@ namespace unet
     }
     void server_base::fn2core(server_base *where, void (*fnc_)(net_core &), int socket, const struct sockaddr_in cli, sock_type type_, SSL *ssl_) noexcept
     {
-        *where->connections += 1;
+        std::shared_ptr<size_t> connections = where->connections;
         net_core mt(socket, cli, type_, ssl_);
         fnc_(mt);
         mt.close_s();
-        *where->connections -= 1;
         return;
     }
     void server_base::run_fn(server_base *where, void (*fnc_)(net_core &), int socket, const struct sockaddr_in cli, sock_type type_, SSL *ssl_, bool thread_) noexcept
@@ -46,7 +45,7 @@ namespace unet
     }
     size_t server_base::get_connection_len() const noexcept
     {
-        return *connections;
+        return connections.use_count() - 1;
     }
     size_t server_base::get_connection_no() const noexcept
     {
