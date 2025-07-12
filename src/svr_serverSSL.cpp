@@ -9,6 +9,7 @@ namespace unet
     {
         netcpp_start();
         fnc = fnc_;
+        type = SSL_c;
         thread_use = thread_;
 
         if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -57,6 +58,7 @@ namespace unet
     {
         netcpp_start();
         fnc = fnc_;
+        type = SSL_c;
         thread_use = thread_;
 
         if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
