@@ -39,7 +39,7 @@ int main()
     std::cout << unet::extract_http_body(cli.recv_all()) << std::endl;
     while (1)
     {
-        std::cout << "Waiting for connections..." << svr.get_connection_len() << " " << svr.get_connection_no() << std::endl;
+        std::cout << "\rWaiting for connections..." << svr.get_connection_len() << " " << svr.get_connection_no() << std::endl;
         // wait for server
         usleep(1);
     }
