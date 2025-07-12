@@ -18,13 +18,19 @@ endif
 
 TARGETS2 = $(patsubst src/%.cpp, build/%.o, $(wildcard src/*.cpp))
 
+all: main.out test.out
+
 main.out: build/main.o libunet.a
+test.out: build/test_main.o libunet.a
 
 _min.out:build/main.o libunet.a
 	$(CC) $^ -o $@ $(MINLIB)
 
 libunet.a:$(TARGETS2)
 build/main.o: main.cpp
+	@mkdir -p build
+	$(CC) $< -c -o $@ $(CFLAG)
+build/test_main.o: test_main.cpp
 	@mkdir -p build
 	$(CC) $< -c -o $@ $(CFLAG)
 
