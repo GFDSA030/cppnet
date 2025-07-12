@@ -11,6 +11,7 @@ namespace unet
 
     ClientSSL::ClientSSL(const char *addr_, const int port_) noexcept
     {
+        set_type(SSL_c);
         getipaddr(addr_, addr);
         type = SSL_c;
         addr.sin_port = htons(port_);
@@ -35,6 +36,8 @@ namespace unet
 
     int ClientSSL::connect_s(const char *addr_, const int port_) noexcept
     {
+        close_m();
+        set_type(SSL_c);
         getipaddr(addr_, addr);
         type = SSL_c;
         addr.sin_port = htons(port_);
@@ -54,7 +57,8 @@ namespace unet
 
         SSL_set_fd(ssl, sock);
         this_status = online;
-        return SSL_connect(ssl);
+        SSL_connect(ssl);
+        return success;
     }
 
     ClientSSL::~ClientSSL()

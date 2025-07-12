@@ -2,6 +2,7 @@
 #define BASE
 #include <netdefs.h>
 #include <string>
+#include <functional>
 
 namespace unet
 {
@@ -17,6 +18,12 @@ namespace unet
         static size_t base_no;
         static size_t base_len;
         size_t this_no = 0;
+        int send_tcp(const void *data, size_t len) const noexcept;
+        int recv_tcp(void *buf, size_t len) const noexcept;
+        int close_tcp() noexcept;
+        int send_ssl(const void *data, size_t len) const noexcept;
+        int recv_ssl(void *buf, size_t len) const noexcept;
+        int close_ssl() noexcept;
 
     protected:
         int sock = 0;
@@ -27,11 +34,16 @@ namespace unet
         SSL *ssl = nullptr;
         SSL_CTX *ctx = nullptr;
 
-        int send_m(const void *data, size_t len) const noexcept;
-        int recv_m(void *buf, size_t len) const noexcept;
-        int close_m() noexcept;
+        std::function<int(const void *, size_t)> send_m = std::bind(&net_base::send_tcp, this, std::placeholders::_1, std::placeholders::_2);
+        std::function<int(void *, size_t)> recv_m = std::bind(&net_base::recv_tcp, this, std::placeholders::_1, std::placeholders::_2);
+        std::function<int()> close_m = std::bind(&net_base::close_tcp, this);
+        // int send_m(const void *data, size_t len) const noexcept;
+        // int recv_m(void *buf, size_t len) const noexcept;
+        // int close_m() noexcept;
         net_base() noexcept;
         ~net_base();
+
+        int set_type(sock_type type_) noexcept;
 
         size_t get_base_no() const noexcept;
         size_t get_base_len() const noexcept;
