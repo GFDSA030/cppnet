@@ -27,7 +27,7 @@ int main()
 {
     // Server
 
-    unet::ServerTCP svr(9090, get, unet::TCP_c, "server.crt", "server.key");
+    unet::Server_com svr(9090, get, unet::TCP_c, "server.crt", "server.key");
     svr.listen_p(0);
 
     // Client_com
@@ -39,7 +39,7 @@ int main()
     std::cout << unet::extract_http_body(cli.recv_all()) << std::endl;
     while (1)
     {
-        std::cout << "\rWaiting for connections..." << svr.get_connection_len() << " " << svr.get_connection_no() << std::endl;
+        std::cout << "\rWaiting for connections..." << svr.get_connection_len() << " " << svr.get_connection_no();
         // wait for server
         usleep(1);
     }
