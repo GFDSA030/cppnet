@@ -58,11 +58,9 @@ namespace unet
 
     ServerTCP::~ServerTCP()
     {
-        close(sock);
-        netcpp_stop();
     }
 
-    int ServerTCP::listen_p() noexcept
+    int ServerTCP::listen_m() noexcept
     {
         struct sockaddr_in client;
         uint len;
@@ -76,13 +74,19 @@ namespace unet
             ioctl(sock, FIONBIO, &val);
 #endif // NETCPP_BLOCKING
 
-            run_fn(fnc, sockcli, client, TCP_c, nullptr, thread_use);
+            run_fn(this, fnc, sockcli, client, TCP_c, nullptr, thread_use);
         }
         return success;
     }
-    int ServerTCP::stop() noexcept
+    int ServerTCP::listen_p(bool block) noexcept
     {
-        cont = 0;
-        return success;
+        if (block)
+            return listen_m();
+        else
+        {
+            std::thread t(&ServerTCP::listen_m, this);
+            t.detach();
+            return success;
+        }
     }
 } // namespace unet

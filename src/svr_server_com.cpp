@@ -62,18 +62,9 @@ namespace unet
 
     Server_com::~Server_com()
     {
-#ifdef NETCPP_SSL_AVAILABLE
-        if (ctx != nullptr)
-        {
-            SSL_CTX_free(ctx);
-            ctx = nullptr;
-        }
-#endif
-        close(sock);
-        netcpp_stop();
     }
 
-    int Server_com::listen_p() noexcept
+    int Server_com::listen_m() noexcept
     {
         struct sockaddr_in client;
         uint len;
@@ -101,9 +92,21 @@ namespace unet
                 }
             }
 #endif
-            run_fn(fnc, sockcli, client, type, ssl, thread_use);
+
+            run_fn(this, fnc, sockcli, client, type, ssl, thread_use);
         }
         return success;
+    }
+    int Server_com::listen_p(bool block) noexcept
+    {
+        if (block)
+            return listen_m();
+        else
+        {
+            std::thread t(&Server_com::listen_m, this);
+            t.detach();
+            return success;
+        }
     }
 
     sock_type Server_com::change_type(const sock_type type_) noexcept
@@ -117,9 +120,4 @@ namespace unet
         return type;
     }
 
-    int Server_com::stop() noexcept
-    {
-        cont = 0;
-        return success;
-    }
 }

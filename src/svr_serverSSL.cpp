@@ -103,16 +103,9 @@ namespace unet
 
     ServerSSL::~ServerSSL()
     {
-        if (ctx != nullptr)
-        {
-            SSL_CTX_free(ctx);
-            ctx = nullptr;
-        }
-        close(sock);
-        netcpp_stop();
     }
 
-    int ServerSSL::listen_p() noexcept
+    int ServerSSL::listen_m() noexcept
     {
         struct sockaddr_in client;
         uint len;
@@ -134,15 +127,22 @@ namespace unet
                 ERR_print_errors_fp(stderr);
                 continue;
             }
-            run_fn(fnc, sockcli, client, SSL_c, ssl, thread_use);
+
+            run_fn(this, fnc, sockcli, client, SSL_c, ssl, thread_use);
         }
         return success;
     }
-
-    int ServerSSL::stop() noexcept
+    int ServerSSL::listen_p(bool block) noexcept
     {
-        cont = 0;
-        return success;
+        if (block)
+            return listen_m();
+        else
+        {
+            std::thread t(&ServerSSL::listen_m, this);
+            t.detach();
+            return success;
+        }
     }
+
 #endif
 }
