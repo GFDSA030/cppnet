@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 
-void get(unet::net_core &con)
+void get(unet::net_core &con, void *Udata) noexcept
 {
     static size_t no = 0;
     char recv_buf[2048 * 4];
