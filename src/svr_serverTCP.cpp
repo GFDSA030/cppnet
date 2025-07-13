@@ -4,7 +4,7 @@
 #include <thread>
 namespace unet
 {
-    ServerTCP::ServerTCP(int port_, void (*fnc_)(net_core &), bool thread_) noexcept
+    ServerTCP::ServerTCP(int port_, svrCallbackFn fnc_, bool thread_) noexcept
     {
         netcpp_start();
         fnc = fnc_;
@@ -31,7 +31,7 @@ namespace unet
         listen(sock, 25);
     }
 
-    ServerTCP::ServerTCP(int port_, void (*fnc_)(net_core &), sock_type type_, const char *crt, const char *pem, bool thread_) noexcept
+    ServerTCP::ServerTCP(int port_, svrCallbackFn fnc_, sock_type type_, const char *crt, const char *pem, bool thread_) noexcept
     {
         netcpp_start();
         fnc = fnc_;
@@ -76,7 +76,7 @@ namespace unet
             ioctl(sock, FIONBIO, &val);
 #endif // NETCPP_BLOCKING
 
-            run_fn(this, fnc, sockcli, client, TCP_c, nullptr, thread_use);
+            run_fn(this, fnc, sockcli, client, TCP_c, nullptr, thread_use, UserData);
         }
         return success;
     }

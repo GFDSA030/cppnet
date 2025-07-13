@@ -5,7 +5,7 @@
 namespace unet
 {
 #ifdef NETCPP_SSL_AVAILABLE
-    ServerSSL::ServerSSL(int port_, void (*fnc_)(net_core &), const char *crt, const char *pem, bool thread_) noexcept
+    ServerSSL::ServerSSL(int port_, svrCallbackFn fnc_, const char *crt, const char *pem, bool thread_) noexcept
     {
         netcpp_start();
         fnc = fnc_;
@@ -54,7 +54,7 @@ namespace unet
         }
     }
 
-    ServerSSL::ServerSSL(int port_, void (*fnc_)(net_core &), sock_type type_, const char *crt, const char *pem, bool thread_) noexcept
+    ServerSSL::ServerSSL(int port_, svrCallbackFn fnc_, sock_type type_, const char *crt, const char *pem, bool thread_) noexcept
     {
         netcpp_start();
         fnc = fnc_;
@@ -130,7 +130,7 @@ namespace unet
                 continue;
             }
 
-            run_fn(this, fnc, sockcli, client, SSL_c, ssl, thread_use);
+            run_fn(this, fnc, sockcli, client, SSL_c, ssl, thread_use, UserData);
         }
         return success;
     }

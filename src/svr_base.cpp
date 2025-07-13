@@ -4,7 +4,6 @@
 namespace unet
 {
     server_base::server_base() noexcept {
-
     };
     server_base::~server_base()
     {
@@ -23,24 +22,29 @@ namespace unet
         cont = 0;
         return success;
     }
-    void server_base::fn2core(server_base *where, void (*fnc_)(net_core &), int socket, const struct sockaddr_in cli, sock_type type_, SSL *ssl_) noexcept
+    int server_base::setUserData(void *data) noexcept
+    {
+        UserData = data;
+        return success;
+    }
+    void server_base::fn2core(server_base *where, svrCallbackFn fnc_, int socket, const struct sockaddr_in cli, sock_type type_, SSL *ssl_, void *Udata) noexcept
     {
         std::shared_ptr<size_t> connections = where->connections;
         net_core mt(socket, cli, type_, ssl_);
-        fnc_(mt);
+        fnc_(mt, Udata);
         mt.close_s();
         return;
     }
-    void server_base::run_fn(server_base *where, void (*fnc_)(net_core &), int socket, const struct sockaddr_in cli, sock_type type_, SSL *ssl_, bool thread_) noexcept
+    void server_base::run_fn(server_base *where, svrCallbackFn fnc_, int socket, const struct sockaddr_in cli, sock_type type_, SSL *ssl_, bool thread_, void *Udata) noexcept
     {
         where->connection_no++;
         if (thread_)
         {
-            std::thread(fn2core, where, fnc_, socket, cli, type_, ssl_).detach();
+            std::thread(fn2core, where, fnc_, socket, cli, type_, ssl_, Udata).detach();
         }
         else
         {
-            fn2core(where, fnc_, socket, cli, type_, ssl_);
+            fn2core(where, fnc_, socket, cli, type_, ssl_, Udata);
         }
     }
     size_t server_base::get_connection_len() const noexcept

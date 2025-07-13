@@ -4,7 +4,7 @@
 #include <thread>
 namespace unet
 {
-    Server::Server(int port_, void (*fnc_)(net_core &), sock_type type_, const char *crt, const char *pem, bool thread_) noexcept
+    Server::Server(int port_, svrCallbackFn fnc_, sock_type type_, const char *crt, const char *pem, bool thread_) noexcept
     {
         netcpp_start();
         fnc = fnc_;
@@ -93,7 +93,7 @@ namespace unet
             }
 #endif
 
-            run_fn(this, fnc, sockcli, client, type, ssl, thread_use);
+            run_fn(this, fnc, sockcli, client, type, ssl, thread_use, UserData);
         }
         return success;
     }
