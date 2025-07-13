@@ -33,17 +33,18 @@ namespace unet
         int stop() noexcept;
     };
 
-    class Server_com : public server_base
+    class Server : public server_base
     {
     private:
         int listen_m() noexcept;
 
     public:
-        Server_com(int port_, void (*fnc_)(net_core &), sock_type type_ = TCP_c, const char *crt = "", const char *pem = "", bool thread_ = true) noexcept;
-        ~Server_com();
+        Server(int port_, void (*fnc_)(net_core &), sock_type type_ = TCP_c, const char *crt = "", const char *pem = "", bool thread_ = true) noexcept;
+        ~Server();
         sock_type change_type(const sock_type type_) noexcept;
         int listen_p(bool block = true) noexcept;
     };
+    typedef Server Server_com;
 
 #ifdef NETCPP_SSL_AVAILABLE
     class ServerSSL : public server_base

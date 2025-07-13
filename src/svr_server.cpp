@@ -4,7 +4,7 @@
 #include <thread>
 namespace unet
 {
-    Server_com::Server_com(int port_, void (*fnc_)(net_core &), sock_type type_, const char *crt, const char *pem, bool thread_) noexcept
+    Server::Server(int port_, void (*fnc_)(net_core &), sock_type type_, const char *crt, const char *pem, bool thread_) noexcept
     {
         netcpp_start();
         fnc = fnc_;
@@ -60,11 +60,11 @@ namespace unet
 #endif
     }
 
-    Server_com::~Server_com()
+    Server::~Server()
     {
     }
 
-    int Server_com::listen_m() noexcept
+    int Server::listen_m() noexcept
     {
         struct sockaddr_in client;
         uint len;
@@ -97,19 +97,19 @@ namespace unet
         }
         return success;
     }
-    int Server_com::listen_p(bool block) noexcept
+    int Server::listen_p(bool block) noexcept
     {
         if (block)
             return listen_m();
         else
         {
-            std::thread t(&Server_com::listen_m, this);
+            std::thread t(&Server::listen_m, this);
             t.detach();
             return success;
         }
     }
 
-    sock_type Server_com::change_type(const sock_type type_) noexcept
+    sock_type Server::change_type(const sock_type type_) noexcept
     {
         if (type < 0 || type_ == unknown)
         {

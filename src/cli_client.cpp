@@ -5,7 +5,7 @@
 
 namespace unet
 {
-    Client_com::Client_com(const char *addr_, const sock_type type_, const int port_) noexcept
+    Client::Client(const char *addr_, const sock_type type_, const int port_) noexcept
     {
         set_type(type_);
         getipaddr(addr_, addr);
@@ -40,7 +40,7 @@ namespace unet
         this_status = online;
     }
 
-    int Client_com::connect_s(const char *addr_, const sock_type type_, const int port_) noexcept
+    int Client::connect_s(const char *addr_, const sock_type type_, const int port_) noexcept
     {
         close_m();
         set_type(type_);
@@ -77,7 +77,7 @@ namespace unet
         return success;
     }
 
-    sock_type Client_com::change_type(const sock_type type_) noexcept
+    sock_type Client::change_type(const sock_type type_) noexcept
     {
         if (type < 0 || type_ == unknown)
         {
@@ -89,11 +89,11 @@ namespace unet
         return type;
     }
 
-    Client_com::Client_com() noexcept
+    Client::Client() noexcept
     {
     }
 
-    Client_com::~Client_com()
+    Client::~Client()
     {
         close_m();
     }

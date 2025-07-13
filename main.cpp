@@ -27,12 +27,12 @@ int main()
 {
     // Server
 
-    unet::Server_com svr(9090, get, unet::TCP_c, "server.crt", "server.key");
+    unet::Server svr(9090, get, unet::TCP_c, "server.crt", "server.key");
     svr.listen_p(0);
 
     // Client_com
     std::string target = "example.com";
-    unet::Client_com cli(target.c_str(), unet::SSL_c);
+    unet::Client cli(target.c_str(), unet::SSL_c);
     cli.send_data(unet::get_http_request_header("GET", "/", target));
 
     // std::cout << cli.recv_all();
