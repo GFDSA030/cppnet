@@ -10,10 +10,12 @@ namespace unet
         static size_t udp_no;
 
     protected:
-        int send_m(struct sockaddr_in *addr, const char *buf, int len);
-        int recv_m(struct sockaddr_in *addr, char *buf, int len);
-        int sock = 0;
-        int port = 0;
+        int send_m(const struct sockaddr_in *addr, const char *buf, int len) const noexcept;
+        int recv_m(const struct sockaddr_in *addr, char *buf, int len) const noexcept;
+        int Tsock = 0;
+        int Tport = 0;
+        int Rsock = 0;
+        int Rport = 0;
 
     public:
         udp_core();
@@ -24,14 +26,13 @@ namespace unet
     {
     public:
         UDP();
-        UDP(int port_);
+        UDP(int Tx_, int Rx_);
         ~UDP();
 
-        int set_port(int port_);
+        int set_port(int Tx_, int Rx_);
         int send_data(const char *addr_, const char *buf, int len);
         int recv_data(char *buf, int len);
         int recv_data(struct sockaddr_in *addr, char *buf, int len);
-        void close_s();
     };
 }
 

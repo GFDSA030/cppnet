@@ -1,44 +1,45 @@
 #include <udp.h>
 #include <infnc.h>
-
+#include <iostream>
 namespace unet
 {
     UDP::UDP()
     {
     }
-    UDP::UDP(int port_)
+    UDP::UDP(int Tx_, int Rx_)
     {
-        set_port(port_);
+        set_port(Tx_, Rx_);
     }
 
     UDP::~UDP()
     {
     }
-    int UDP::set_port(int port_)
+    int UDP::set_port(int Tx_, int Rx_)
     {
-        if (port_ < 0 || port_ > 65535)
+        if (Tx_ < 0 || Tx_ > 65535 || Rx_ < 0 || Rx_ > 65535)
         {
             return -1; //
         }
-        port = port_;
+        Tport = Tx_;
+        Rport = Rx_;
     }
 
     int UDP::send_data(const char *addr, const char *buf, int len)
     {
         struct sockaddr_in addr_in;
         getipaddr(addr, addr_in);
-        addr_in.sin_port = htons(port);
+        addr_in.sin_port = htons(Tport);
         addr_in.sin_family = AF_INET;
         return send_m(&addr_in, buf, len);
     }
 
     int UDP::recv_data(struct sockaddr_in *addr, char *buf, int len)
     {
-        socklen_t addr_len = sizeof(*addr);
         return recv_m(addr, buf, len);
     }
     int UDP::recv_data(char *buf, int len)
     {
-        return recv(sock, buf, len, 0);
+        sockaddr_in addr;
+        return recv_m(&addr, buf, len);
     }
 } // namespace unet

@@ -26,9 +26,9 @@ void get(unet::net_core &con, void *Udata) noexcept
 int main()
 {
     // UDP
-    unet::UDP udp(9090);
-    udp.set_port(9090);
-    udp.send_data("localhost", "Hello UDP", 9);
+    unet::UDP udp;
+    udp.set_port(9090, 9091);
+    udp.send_data("127.0.0.1", "Hello UDP", 10);
     char udp_buf[1024];
     struct sockaddr_in udp_addr;
     udp.recv_data(&udp_addr, udp_buf, 1024);

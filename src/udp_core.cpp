@@ -4,24 +4,32 @@ namespace unet
 {
     size_t udp_core::udp_no = 0;
 
-    int udp_core::send_m(struct sockaddr_in *addr, const char *buf, int len)
+    int udp_core::send_m(const struct sockaddr_in *addr, const char *buf, int len) const noexcept
     {
-        return sendto(sock, buf, len, 0, (struct sockaddr *)addr, sizeof(struct sockaddr_in));
+        return sendto(Tsock, buf, len, 0, (struct sockaddr *)addr, sizeof(*addr));
     }
-    int udp_core::recv_m(struct sockaddr_in *addr, char *buf, int len)
+    int udp_core::recv_m(const struct sockaddr_in *addr, char *buf, int len) const noexcept
     {
-        socklen_t addr_len = sizeof(struct sockaddr_in);
-        return recvfrom(sock, buf, len, 0, (struct sockaddr *)addr, &addr_len);
+        socklen_t addr_len = sizeof(*addr);
+        return recvfrom(Rsock, buf, len, 0, (struct sockaddr *)addr, &addr_len);
     }
     udp_core::udp_core()
     {
         netcpp_start();
-        sock = socket(AF_INET, SOCK_DGRAM, 0);
-        if (sock < 0)
+        Tsock = socket(AF_INET, SOCK_DGRAM, 0);
+        Rsock = socket(AF_INET, SOCK_DGRAM, 0);
+        if ((Tsock | Rsock) < 0)
         {
             perror("socket");
-            exit(EXIT_FAILURE);
+            return;
         }
+
+        struct sockaddr_in addr;
+        addr.sin_family = AF_INET;
+        addr.sin_port = htons(Rport);
+        addr.sin_addr.s_addr = INADDR_ANY;
+        bind(Rsock, (struct sockaddr *)&addr, sizeof(addr));
+
 #ifndef NETCPP_BLOCKING
         u_long val = 1;
         ioctl(sock, FIONBIO, &val);
@@ -31,9 +39,13 @@ namespace unet
 
     udp_core::~udp_core()
     {
-        if (sock > 0)
+        if (Tsock > 0)
         {
-            close(sock);
+            close(Tsock);
+        }
+        if (Rsock > 0)
+        {
+            close(Rsock);
         }
         udp_no--;
         netcpp_stop();
