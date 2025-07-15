@@ -21,9 +21,11 @@ namespace unet
         int send_tcp(const void *data, size_t len) const noexcept;
         int recv_tcp(void *buf, size_t len) const noexcept;
         int close_tcp() noexcept;
+#ifdef NETCPP_SSL_AVAILABLE
         int send_ssl(const void *data, size_t len) const noexcept;
         int recv_ssl(void *buf, size_t len) const noexcept;
         int close_ssl() noexcept;
+#endif // NETCPP_SSL_AVAILABLE
 
     protected:
         int sock = 0;
@@ -65,6 +67,16 @@ namespace unet
         ~net_core();
 
         struct sockaddr_in remote() const noexcept;
+    };
+
+    class Standby
+    {
+    private:
+    public:
+        Standby(int port_, const sock_type type_ = TCP_c);
+        ~Standby();
+        int accept();
+        int connect(const char *addr_);
     };
 
 }

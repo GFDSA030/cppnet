@@ -22,6 +22,7 @@ namespace unet
         }
         Tport = Tx_;
         Rport = Rx_;
+        return success;
     }
 
     int UDP::send_data(const char *addr, const char *buf, int len)
