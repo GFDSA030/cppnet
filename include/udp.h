@@ -24,10 +24,10 @@ namespace unet
     {
     public:
         UDP();
-        UDP(int port);
+        UDP(int port_);
         ~UDP();
 
-        int set_port(int port);
+        int set_port(int port_);
         int send_data(const char *addr_, const char *buf, int len);
         int recv_data(char *buf, int len);
         int recv_data(struct sockaddr_in *addr, char *buf, int len);

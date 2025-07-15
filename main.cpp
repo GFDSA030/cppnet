@@ -25,6 +25,14 @@ void get(unet::net_core &con, void *Udata) noexcept
 
 int main()
 {
+    // UDP
+    unet::UDP udp(9090);
+    udp.set_port(9090);
+    udp.send_data("localhost", "Hello UDP", 9);
+    char udp_buf[1024];
+    struct sockaddr_in udp_addr;
+    udp.recv_data(&udp_addr, udp_buf, 1024);
+    std::cout << "UDP received from " << inet_ntoa(udp_addr.sin_addr) << ": " << udp_buf << std::endl;
     // Server
 
     unet::Server svr(9090, get, unet::TCP_c, "server.crt", "server.key");

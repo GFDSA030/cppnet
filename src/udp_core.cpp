@@ -1,5 +1,5 @@
 #include <udp.h>
-
+#include <infnc.h>
 namespace unet
 {
     size_t udp_core::udp_no = 0;
@@ -15,6 +15,7 @@ namespace unet
     }
     udp_core::udp_core()
     {
+        netcpp_start();
         sock = socket(AF_INET, SOCK_DGRAM, 0);
         if (sock < 0)
         {
@@ -35,5 +36,6 @@ namespace unet
             close(sock);
         }
         udp_no--;
+        netcpp_stop();
     }
 }
