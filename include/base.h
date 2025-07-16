@@ -69,14 +69,19 @@ namespace unet
         struct sockaddr_in remote() const noexcept;
     };
 
-    class Standby
+    class Standby : net_base
     {
     private:
+        int port = 0;
+        int svScok = 0;
+
     public:
-        Standby(int port_, const sock_type type_ = TCP_c);
+        Standby(int port_, const sock_type type_ = TCP_c) noexcept;
         ~Standby();
-        int accept();
-        int connect(const char *addr_);
+        int set(int port_, const sock_type type_ = TCP_c) noexcept;
+        int accept_s() noexcept;
+        int connect_s(const char *addr_) noexcept;
+        sock_type change_type(const sock_type type_) noexcept;
     };
 
 }
