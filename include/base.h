@@ -79,8 +79,9 @@ namespace unet
         Standby(int port_, const sock_type type_ = TCP_c) noexcept;
         ~Standby();
         int set(int port_, const sock_type type_ = TCP_c) noexcept;
-        int accept_s() noexcept;
+        int accept_s(const char *crt = "", const char *pem = "") noexcept;
         int connect_s(const char *addr_) noexcept;
+        int close_s()noexcept;
         sock_type change_type(const sock_type type_) noexcept;
     };
 

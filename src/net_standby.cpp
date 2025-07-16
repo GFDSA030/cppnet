@@ -16,9 +16,9 @@ namespace unet
         port = port_;
         change_type(type_);
     }
-    int Standby::accept_s() noexcept
+    int Standby::accept_s(const char *crt = "", const char *pem = "") noexcept
     {
-        close_m();
+        close_s();
 
         if ((svScok = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
@@ -70,7 +70,7 @@ namespace unet
     }
     int Standby::connect_s(const char *addr_) noexcept
     {
-        close_m();
+        close_s();
         getipaddr(addr_, addr);
         addr.sin_port = htons(port);
         if (port == -1)
@@ -101,6 +101,15 @@ namespace unet
 #endif // NETCPP_SSL_AVAILABLE
         this_status = online;
         return success;
+    }
+    int Standby::close_s() noexcept
+    {
+        close_m();
+        if (svScok != 0)
+        {
+            close(svScok);
+        }
+        this_status = offline;
     }
     sock_type Standby::change_type(const sock_type type_) noexcept
     {
