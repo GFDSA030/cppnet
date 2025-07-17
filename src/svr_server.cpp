@@ -75,7 +75,7 @@ namespace unet
             sockcli = accept(sock, (struct sockaddr *)&client, &len);
 #ifndef NETCPP_BLOCKING
             u_long val = 1;
-            ioctl(sock, FIONBIO, &val);
+            ioctl(sockcli, FIONBIO, &val);
 #endif // NETCPP_BLOCKING
 
             SSL *ssl = nullptr;
