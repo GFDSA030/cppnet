@@ -15,15 +15,16 @@ namespace unet
     {
         port = port_;
         change_type(type_);
+        return success;
     }
-    int Standby::accept_s(const char *crt = "", const char *pem = "") noexcept
+    int Standby::accept_s(const char *crt, const char *pem) noexcept
     {
         close_s();
 
         if ((svScok = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
             fprintf(stderr, "Error. Cannot make socket\n");
-            return;
+            return error;
         }
         const int opt = 1;
         setsockopt(svScok, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt));
@@ -35,38 +36,63 @@ namespace unet
         if (bind(svScok, (struct sockaddr *)&addr, sizeof(addr)) < 0)
         {
             fprintf(stderr, "Error. Cannot bind socket\n");
-            return;
+            return error;
         }
         listen(svScok, 25);
 
 #ifdef NETCPP_SSL_AVAILABLE
         if (type != SSL_c)
-            return;
+            return success;
         ctx = SSL_CTX_new(TLS_server_method());
         if (!ctx)
         {
             perror("Error: SSL context\n");
             ERR_print_errors_fp(stderr);
-            return;
+            return error;
         }
         // load crt
         if (!SSL_CTX_use_certificate_file(ctx, crt, SSL_FILETYPE_PEM))
         {
             perror("Error: SSL_CTX_use_certificate_file()\n");
             ERR_print_errors_fp(stderr);
-            return;
+            return error;
         }
         // load private key
         if (!SSL_CTX_use_PrivateKey_file(ctx, pem, SSL_FILETYPE_PEM))
         {
             perror("Error: SSL_CTX_use_PrivateKey_file()\n");
             ERR_print_errors_fp(stderr);
-            return;
+            return error;
         }
 #else
         if (type_ == SSL_c)
+        {
             fprintf(stderr, "ssl isn't avilable\n");
+            return error;
+        }
 #endif
+        uint len = sizeof(addr);
+        sock = accept(svScok, (struct sockaddr *)&addr, &len);
+#ifndef NETCPP_BLOCKING
+        u_long val = 1;
+        ioctl(sock, FIONBIO, &val);
+#endif
+        SSL *ssl = nullptr;
+#ifdef NETCPP_SSL_AVAILABLE
+        if (type == SSL_c)
+        {
+            ssl = SSL_new(ctx);
+            SSL_set_fd(ssl, sock);
+            if (!SSL_accept(ssl))
+            {
+                perror("Error: SSL_accept()");
+                ERR_print_errors_fp(stderr);
+                return error;
+            }
+        }
+#endif
+
+        return success;
     }
     int Standby::connect_s(const char *addr_) noexcept
     {
@@ -97,7 +123,10 @@ namespace unet
         }
 #else
         if (type_ == SSL_c)
+        {
             fprintf(stderr, "ssl isn't avilable\n");
+            return error;
+        }
 #endif // NETCPP_SSL_AVAILABLE
         this_status = online;
         return success;
@@ -110,6 +139,7 @@ namespace unet
             close(svScok);
         }
         this_status = offline;
+        return success;
     }
     sock_type Standby::change_type(const sock_type type_) noexcept
     {
