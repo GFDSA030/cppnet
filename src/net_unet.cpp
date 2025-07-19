@@ -88,7 +88,7 @@ namespace unet
     }
 
     int getipaddrinfo(const char *addr_, int port_, struct sockaddr_in &ret, sock_type type_) noexcept
-    {
+    { // TODO:
         struct addrinfo hints, *res;
         memset(&hints, 0, sizeof(hints));
         hints.ai_socktype = SOCK_STREAM;
@@ -101,25 +101,7 @@ namespace unet
         }
         ret = *(struct sockaddr_in *)res;
         freeaddrinfo(res);
-        return success;
-    }
-
-    int getipaddrinfo(const char *addr_, int port_, struct addrinfo *ret, sock_type type_) noexcept
-    {
-        struct addrinfo hints, *res;
-        memset(&hints, 0, sizeof(hints));
-        hints.ai_socktype = SOCK_STREAM;
-        // hints.ai_family = PF_UNSPEC;
-        hints.ai_family = AF_INET;
-        int err = 0;
-        if ((err = getaddrinfo(addr_, ((type_ == TCP_c) ? "http" : "https"), &hints, &res)) != 0)
-        {
-            printf("error %d\n", err);
-            return error;
-        }
-        memcpy(ret, res, sizeof(hints));
-        // ret = *res;
-        freeaddrinfo(res);
+        freeaddrinfo(&hints);
         return success;
     }
 

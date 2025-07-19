@@ -11,7 +11,6 @@ namespace unet
     void netquit() noexcept;
     int getipaddr(const char *addr_, struct sockaddr_in &ret) noexcept;
     int getipaddrinfo(const char *addr_, int port_, struct sockaddr_in &ret, sock_type type_ = TCP_c) noexcept;
-    int getipaddrinfo(const char *addr_, int port_, struct addrinfo *ret, sock_type type_ = TCP_c) noexcept;
     class net_base
     {
     private:
