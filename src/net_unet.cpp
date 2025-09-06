@@ -6,72 +6,46 @@
 namespace unet
 {
 
-#ifdef NETCPP_SSL_AVAILABLE
-
-#ifdef __WIN32
-
-    WSADATA data;
-    void netinit() noexcept
+    status netcpp_status = offline;
+    size_t netcpp_using_no = 0;
+    int netcpp_start() noexcept
     {
-        netcpp_setstatus(online);
-        WSAStartup(MAKEWORD(2, 2), &data);
-        SSL_load_error_strings();
-        SSL_library_init();
+        netcpp_using_no++;
+        if (netcpp_status == offline)
+        {
+            netinit();
+            netcpp_status = online;
+            return success;
+        }
+        return success;
     }
-    void netquit() noexcept
+    int netcpp_stop() noexcept
     {
-        ERR_free_strings();
-        WSACleanup();
-        netcpp_setstatus(offline);
+        netcpp_using_no--;
+        if ((netcpp_status == online) && (netcpp_using_no == 0))
+        {
+            netquit();
+            netcpp_status = offline;
+            return success;
+        }
+        return success;
     }
-
-#else //__WIN32
-
-    void netinit() noexcept
+    int netcpp_setstatus(status s) noexcept
     {
-        netcpp_setstatus(online);
-        SSL_load_error_strings();
-        SSL_library_init();
+        if (s == online)
+        {
+            netcpp_status = s;
+            netcpp_using_no++;
+            return success;
+        }
+        if (s == offline)
+        {
+            netcpp_status = s;
+            netcpp_using_no--;
+            return success;
+        }
+        return error;
     }
-    void netquit() noexcept
-    {
-        ERR_free_strings();
-        netcpp_setstatus(offline);
-    }
-
-#endif //__WIN32
-
-#else // NETCPP_SSL_AVAILABLE
-
-#ifdef __WIN32
-
-    WSADATA data;
-    void netinit() noexcept
-    {
-        netcpp_setstatus(online);
-        WSAStartup(MAKEWORD(2, 0), &data);
-    }
-    void netquit() noexcept
-    {
-        WSACleanup();
-        netcpp_setstatus(offline);
-    }
-
-#else //__WIN32
-
-    void netinit() noexcept
-    {
-        netcpp_setstatus(online);
-    }
-    void netquit() noexcept
-    {
-        netcpp_setstatus(offline);
-    }
-
-#endif //__WIN32
-
-#endif // NETCPP_SSL_AVAILABLE
-
     int getipaddr(const char *addr_, struct sockaddr_in &ret) noexcept
     {
         struct hostent *hs;

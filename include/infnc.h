@@ -42,12 +42,9 @@ namespace unet
 
 namespace unet
 {
-    int startGC();
-    int netcpp_start() noexcept;
-    int netcpp_stop()noexcept;
-    int netcpp_setstatus(status s)noexcept;
-    int setthread(std::thread *p);
-    int freethread(std::thread *p);
+    void netinit() noexcept;
+    void netquit() noexcept;
+    int netcpp_setstatus(status s) noexcept;
 } // namespace unet
 
 #endif

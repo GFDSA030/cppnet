@@ -7,8 +7,8 @@
 namespace unet
 {
 
-    void netinit() noexcept;
-    void netquit() noexcept;
+    int netcpp_start() noexcept;
+    int netcpp_stop() noexcept;
     int getipaddr(const char *addr_, struct sockaddr_in &ret) noexcept;
     int getipaddrinfo(const char *addr_, int port_, struct sockaddr_in &ret, sock_type type_ = TCP_c) noexcept;
     class net_base
@@ -68,7 +68,7 @@ namespace unet
         struct sockaddr_in remote() const noexcept;
     };
 
-    class Standby : net_base
+    class Standby : net_base // どっちにもなる
     {
     private:
         int port = 0;
@@ -80,7 +80,7 @@ namespace unet
         int set(int port_, const sock_type type_ = TCP_c) noexcept;
         int accept_s(const char *crt = "", const char *pem = "") noexcept;
         int connect_s(const char *addr_) noexcept;
-        int close_s()noexcept;
+        int close_s() noexcept;
         sock_type change_type(const sock_type type_) noexcept;
     };
 
