@@ -6,8 +6,8 @@ int main()
     std::cout << "===== cppnet テスト開始 =====" << std::endl;
 
     // base.h
-    netinit();
-    std::cout << "netinit() 実行" << std::endl;
+    netcpp_start();
+    std::cout << "netcpp_start() 実行" << std::endl;
 
     // client.h
     // Client_comでTCP通信 (HTTP)
@@ -89,8 +89,8 @@ int main()
     // server.h
     // Server_com, ServerSSL, ServerTCP などはコールバック関数が必要
 
-    netquit();
-    std::cout << "netquit() 実行" << std::endl;
+    netcpp_stop();
+    std::cout << "netcpp_stop() 実行" << std::endl;
 
     std::cout << "===== cppnet テスト終了 =====" << std::endl;
     return 0;
