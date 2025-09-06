@@ -52,10 +52,10 @@ make
 - `unet::net_core` : サーバ共通の通信クラス
 - `unet::ServerTCP` : TCP サーバクラス
 - `unet::ServerSSL` : SSL サーバクラス
-- `unet::Server_com` : 複数種別対応サーバクラス（オーバーヘッド有）
+- `unet::Server` : 複数種別対応サーバクラス
 - `unet::ClientTCP` : TCP クライアントクラス
 - `unet::ClientSSL` : SSL クライアントクラス
-- `unet::Client_com` : 複数種別対応クライアントクラス（オーバーヘッド有）
+- `unet::Client` : 複数種別対応クライアントクラス
 
 ## クラス別サンプル
 
@@ -64,16 +64,14 @@ make
 ```cpp
 #include <server.h>
 #include <iostream>
-void callback(unet::net_core &con) {
+void callback(unet::net_core &con, void *Udata) {
     std::string msg = "Hello TCP!";
     con.send_data(msg.c_str(), msg.size());
     con.close_s();
 }
 int main() {
-    unet::netinit();
     unet::ServerTCP svr(9000, callback);
     svr.listen_p();
-    unet::netquit();
 }
 ```
 
@@ -82,16 +80,14 @@ int main() {
 ```cpp
 #include <server.h>
 #include <iostream>
-void callback(unet::net_core &con) {
+void callback(unet::net_core &con, void *Udata) {
     std::string msg = "Hello SSL!";
     con.send_data(msg.c_str(), msg.size());
     con.close_s();
 }
 int main() {
-    unet::netinit();
     unet::ServerSSL svr(9443, callback, "server.crt", "server.key");
     svr.listen_p();
-    unet::netquit();
 }
 ```
 
@@ -100,16 +96,14 @@ int main() {
 ```cpp
 #include <server.h>
 #include <iostream>
-void callback(unet::net_core &con) {
+void callback(unet::net_core &con, void *Udata) {
     std::string msg = "Hello Server_com!";
     con.send_data(msg.c_str(), msg.size());
     con.close_s();
 }
 int main() {
-    unet::netinit();
     unet::Server_com svr(9090, callback, unet::TCP_c);
     svr.listen_p();
-    unet::netquit();
 }
 ```
 
@@ -119,12 +113,10 @@ int main() {
 #include <client.h>
 #include <iostream>
 int main() {
-    unet::netinit();
     unet::ClientTCP cli("localhost", 9000);
     cli.send_data("Hello TCP server", 17);
     std::cout << cli.recv_all() << std::endl;
     cli.close_s();
-    unet::netquit();
 }
 ```
 
@@ -134,12 +126,10 @@ int main() {
 #include <client.h>
 #include <iostream>
 int main() {
-    unet::netinit();
     unet::ClientSSL cli("localhost", 9443);
     cli.send_data("Hello SSL server", 17);
     std::cout << cli.recv_all() << std::endl;
     cli.close_s();
-    unet::netquit();
 }
 ```
 
@@ -149,12 +139,10 @@ int main() {
 #include <client.h>
 #include <iostream>
 int main() {
-    unet::netinit();
     unet::Client_com cli("localhost", unet::TCP_c, 9090);
     cli.send_data("Hello Server_com", 16);
     std::cout << cli.recv_all() << std::endl;
     cli.close_s();
-    unet::netquit();
 }
 ```
 
@@ -164,14 +152,12 @@ int main() {
 #include <server.h>
 #include <iostream>
 int main() {
-    unet::netinit();
     unet::ServerUDP svr(8000);
     char buf[1024];
     int len = svr.recv_data(buf, sizeof(buf));
     std::cout << "受信: " << std::string(buf, len) << std::endl;
     svr.send_data("Hello UDP!", 10);
     svr.close_s();
-    unet::netquit();
 }
 ```
 
@@ -181,17 +167,15 @@ int main() {
 #include <client.h>
 #include <iostream>
 int main() {
-    unet::netinit();
     unet::ClientUDP cli("localhost", 8000);
     cli.send_data("Hello UDP server", 17);
     char buf[1024];
     int len = cli.recv_data(buf, sizeof(buf));
     std::cout << std::string(buf, len) << std::endl;
     cli.close_s();
-    unet::netquit();
 }
 ```
 
 ## ライセンス
 
-[zlib License](LICENSE_ja)
+[zlib License](LICENSE)
