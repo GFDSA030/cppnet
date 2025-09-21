@@ -12,8 +12,6 @@ namespace unet
         static void fn2core(server_base *where, svrCallbackFn fnc_, int socket, const struct sockaddr_in cli, sock_type type_, SSL *ssl_, void *Udata) noexcept;
         std::shared_ptr<size_t> connections = std::make_shared<size_t>(0);
         size_t connection_no = 0;
-        bool cont = 1;
-        void *UserData = nullptr;
 
     protected:
         server_base() noexcept;
@@ -27,6 +25,8 @@ namespace unet
         sock_type type = TCP_c;
         SSL_CTX *ctx = nullptr;
         bool thread_use = true;
+        bool cont = 1;
+        void *UserData = nullptr;
 
 
     public:
