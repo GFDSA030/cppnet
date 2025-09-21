@@ -1,7 +1,7 @@
 ifeq ($(OS),Windows_NT)
 CC = clang++
-IFILE = -ID:\dev\lib\mingw\openssl\include
-LFILE = -LD:\dev\lib\mingw\openssl\lib
+IFILE = -ID:\dev\lib\mingw\include
+LFILE = -LD:\dev\lib\mingw\lib
 LIBS = -L. -lssl -lcrypto -lCrypt32 -pthread -lws2_32 -Wl,-s -static -static-libgcc -static-libstdc++ -fuse-ld=lld $(LFILE)
 MINLIB = -L. -lssl -lcrypto -lCrypt32 -pthread -lws2_32 -Wl,-s -fuse-ld=lld $(LFILE)
 #add msys package
