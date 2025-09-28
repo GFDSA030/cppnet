@@ -22,6 +22,7 @@ all: main.out test.out
 
 main.out: build/main.o libunet.a
 test.out: build/test_main.o libunet.a
+test2.out: build/test2.o libunet.a
 
 _min.out:build/main.o libunet.a
 	$(CC) $^ -o $@ $(MINLIB)
@@ -31,6 +32,9 @@ build/main.o: main.cpp
 	@mkdir -p build
 	$(CC) $< -c -o $@ $(CFLAG)
 build/test_main.o: test_main.cpp
+	@mkdir -p build
+	$(CC) $< -c -o $@ $(CFLAG)
+build/test2.o: test.cpp
 	@mkdir -p build
 	$(CC) $< -c -o $@ $(CFLAG)
 

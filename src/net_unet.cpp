@@ -68,7 +68,8 @@ namespace unet
         hints.ai_socktype = SOCK_STREAM;
         hints.ai_family = PF_UNSPEC;
         int err = 0;
-        if ((err = getaddrinfo(addr_, type_ == TCP_c ? "http" : "https", &hints, &res)) != 0)
+        // if ((err = getaddrinfo(addr_, type_ == TCP_c ? "http" : "https", &hints, &res)) != 0)
+        if ((err = getaddrinfo(addr_, NULL, &hints, &res)) != 0)
         {
             printf("error %d\n", err);
             return error;
