@@ -10,7 +10,7 @@ namespace unet
     int netcpp_start() noexcept;
     int netcpp_stop() noexcept;
     int getipaddr(const char *addr_, struct sockaddr_in &ret) noexcept;
-    int getipaddrinfo(const char *addr_, int port_, struct sockaddr_in &ret, sock_type type_ = TCP_c) noexcept;
+    int getipaddrinfo(const char *addr_, int port_, addrinfo &ret, sock_type type_ = TCP_c) noexcept;
     class net_base
     {
     private:
@@ -51,7 +51,7 @@ namespace unet
         size_t get_this_no() const noexcept;
 
     public:
-        int send_data(const void *data, size_t len = 0) const noexcept;
+        int send_data(const void *data, size_t len) const noexcept;
         int recv_data(void *buf, size_t len) const noexcept;
         int send_data(const std::string &data, size_t len = 0) const noexcept;
         int recv_data(std::string &buf, size_t len) const noexcept;

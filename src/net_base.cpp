@@ -163,8 +163,9 @@ namespace unet
 
     int net_base::send_data(const void *data, size_t len) const noexcept
     {
+        // length must be provided for raw pointer data; sizeof(data) would return pointer size
         if (len == 0)
-            len = sizeof(data);
+            return error;
         return send_m(data, len);
     }
     int net_base::recv_data(void *buf, size_t len) const noexcept
@@ -200,9 +201,11 @@ namespace unet
         memset(buffer, 0, BUF_SIZE);
         std::string result;
         // receive all
-        while (recv_data(buffer, BUF_SIZE - 1) > 0)
+        int ret = 0;
+        while ((ret = recv_data(buffer, BUF_SIZE - 1)) > 0)
         {
-            result += buffer;
+            // append exact number of bytes received (may contain nulls)
+            result.append(buffer, ret);
             memset(buffer, 0, BUF_SIZE);
         }
         return result;

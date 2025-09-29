@@ -61,12 +61,12 @@ namespace unet
         return success;
     }
 
-    int getipaddrinfo(const char *addr_, int port_, struct sockaddr_in &ret, sock_type type_) noexcept
+    int getipaddrinfo(const char *addr_, int port_, addrinfo &ret, sock_type type_) noexcept
     { // TODO:
-        struct addrinfo hints, *res;
-        memset(&hints, 0, sizeof(hints));
-        hints.ai_socktype = SOCK_STREAM;
-        hints.ai_family = PF_UNSPEC;
+        addrinfo hints = {}, *res;
+        hints.ai_family = AF_UNSPEC; // IPv4 or IPv6
+        hints.ai_socktype = type_ == sock_type::TCP_c ? SOCK_STREAM : (type_ == sock_type::UDP_c ? SOCK_DGRAM : NULL);
+        hints.ai_flags = AI_PASSIVE; // For wildcard IP address
         int err = 0;
         // if ((err = getaddrinfo(addr_, type_ == TCP_c ? "http" : "https", &hints, &res)) != 0)
         if ((err = getaddrinfo(addr_, NULL, &hints, &res)) != 0)
@@ -74,10 +74,13 @@ namespace unet
             printf("error %d\n", err);
             return error;
         }
-        ret = *(struct sockaddr_in *)res;
+        if (res == nullptr)
+        {
+            return error;
+        }
+        memcpy(&ret, res, sizeof(addrinfo));
         freeaddrinfo(res);
-        freeaddrinfo(&hints);
+        ((struct sockaddr_in *)ret.ai_addr)->sin_port = htons(port_);
         return success;
     }
-
 }
