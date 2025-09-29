@@ -10,7 +10,7 @@ int main()
     hints.ai_socktype = SOCK_STREAM; // TCP
     hints.ai_flags = AI_PASSIVE;     // For wildcard IP address
     addrinfo *res;
-    int status = getaddrinfo("www.google.com", NULL, &hints, &res);
+    int status = getaddrinfo("example.com", NULL, &hints, &res);
     if (status != 0)
     {
         // std::cerr << "getaddrinfo error: " << gai_strerror(status) << std::endl;
@@ -39,7 +39,7 @@ int main()
     freeaddrinfo(res);
 
     std::cout << "---- getipaddrinfo ----" << std::endl;
-    const char *addrstr = "www.google.com";
+    const char *addrstr = "example.com";
     int port = 80;
     addrinfo ret;
     if (unet::getipaddrinfo(addrstr, port, ret) == unet::success)
@@ -65,7 +65,7 @@ int main()
         // httpリクエストを送ってみる
         int sock = socket(ret.ai_family, SOCK_STREAM, 0);
         connect(sock, ret.ai_addr, ret.ai_addrlen);
-        const char *http_request = "GET / HTTP/1.1\r\nHost: google.com\r\nConnection: close\r\n\r\n";
+        const char *http_request = "GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n";
         send(sock, http_request, strlen(http_request), 0);
         char buffer[4096];
         int bytes_received;
