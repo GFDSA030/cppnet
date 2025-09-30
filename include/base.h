@@ -27,10 +27,6 @@ namespace unet
         int close_ssl() noexcept;
 #endif // NETCPP_SSL_AVAILABLE
 
-        std::function<int(const void *, size_t)> send_m = std::bind(&net_base::send_tcp, this, std::placeholders::_1, std::placeholders::_2);
-        std::function<int(void *, size_t)> recv_m = std::bind(&net_base::recv_tcp, this, std::placeholders::_1, std::placeholders::_2);
-        std::function<int()> close_m = std::bind(&net_base::close_tcp, this);
-
     protected:
         int sock = 0;
         IPaddress addr = {};
@@ -40,6 +36,10 @@ namespace unet
         SSL_CTX *ctx = nullptr;
         net_base() noexcept;
         ~net_base();
+
+        std::function<int(const void *, size_t)> send_m = std::bind(&net_base::send_tcp, this, std::placeholders::_1, std::placeholders::_2);
+        std::function<int(void *, size_t)> recv_m = std::bind(&net_base::recv_tcp, this, std::placeholders::_1, std::placeholders::_2);
+        std::function<int()> close_m = std::bind(&net_base::close_tcp, this);
 
         int set_type(sock_type type_) noexcept;
 
