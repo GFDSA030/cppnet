@@ -27,21 +27,17 @@ namespace unet
         int close_ssl() noexcept;
 #endif // NETCPP_SSL_AVAILABLE
 
+        std::function<int(const void *, size_t)> send_m = std::bind(&net_base::send_tcp, this, std::placeholders::_1, std::placeholders::_2);
+        std::function<int(void *, size_t)> recv_m = std::bind(&net_base::recv_tcp, this, std::placeholders::_1, std::placeholders::_2);
+        std::function<int()> close_m = std::bind(&net_base::close_tcp, this);
+
     protected:
         int sock = 0;
-        // int port = 0;
         IPaddress addr = {};
         sock_type type = TCP_c;
         status this_status = offline;
         SSL *ssl = nullptr;
         SSL_CTX *ctx = nullptr;
-
-        std::function<int(const void *, size_t)> send_m = std::bind(&net_base::send_tcp, this, std::placeholders::_1, std::placeholders::_2);
-        std::function<int(void *, size_t)> recv_m = std::bind(&net_base::recv_tcp, this, std::placeholders::_1, std::placeholders::_2);
-        std::function<int()> close_m = std::bind(&net_base::close_tcp, this);
-        // int send_m(const void *data, size_t len) const noexcept;
-        // int recv_m(void *buf, size_t len) const noexcept;
-        // int close_m() noexcept;
         net_base() noexcept;
         ~net_base();
 
@@ -70,7 +66,7 @@ namespace unet
         IPaddress remote() const noexcept;
     };
 
-    class Standby : net_base // どっちにもなる
+    class Standby : net_base // どっちにもなる //TODO:
     {
     private:
         int port = 0;

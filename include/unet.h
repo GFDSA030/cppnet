@@ -1,6 +1,6 @@
 #ifndef UNET
 #define UNET
-// TODO: ipv6 support
+// DONE: ipv6 support
 // TODO: memory leak check
 // TODO: error handling
 // TODO: add more comments

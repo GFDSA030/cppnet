@@ -4,7 +4,7 @@
 
 namespace unet
 {
-    class udp_core
+    class udp_core // TODO: 構成考える
     {
     private:
         static size_t udp_no;
