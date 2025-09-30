@@ -49,41 +49,5 @@ namespace unet
     };
     typedef Server Server_com;
 
-    class ServerIPV6 : public server_base
-    {
-    private:
-        int listen_m() noexcept;
-
-    public:
-        ServerIPV6(int port_, svrCallbackFn fnc_, sock_type type_ = TCP_c, const char *crt = "", const char *pem = "", bool thread_ = true) noexcept;
-        ~ServerIPV6();
-        sock_type change_type(const sock_type type_) noexcept;
-        int listen_p(bool block = true) noexcept;
-    };
-
-#ifdef NETCPP_SSL_AVAILABLE
-    class ServerSSL : public server_base
-    {
-    private:
-        int listen_m() noexcept;
-
-    public:
-        ServerSSL(int port_, svrCallbackFn fnc_, const char *crt, const char *pem, bool thread_ = true) noexcept;
-        ServerSSL(int port_, svrCallbackFn fnc_, [[maybe_unused]] sock_type type_ = SSL_c, const char *crt = "", const char *pem = "", bool thread_ = true) noexcept;
-        ~ServerSSL();
-        int listen_p(bool block = true) noexcept;
-    };
-#endif
-    class ServerTCP : public server_base
-    {
-    private:
-        int listen_m() noexcept;
-
-    public:
-        ServerTCP(int port_, svrCallbackFn fnc_, bool thread_ = true) noexcept;
-        ServerTCP(int port_, svrCallbackFn fnc_, [[maybe_unused]] sock_type type_ = TCP_c, [[maybe_unused]] const char *crt = "", [[maybe_unused]] const char *pem = "", bool thread_ = true) noexcept;
-        ~ServerTCP();
-        int listen_p(bool block = true) noexcept;
-    };
 }
 #endif

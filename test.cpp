@@ -97,7 +97,7 @@ int main()
     client.close_s();
 
     std::cout << "---- ServerIPV6 ----" << std::endl;
-    unet::ServerIPV6 server(8080, fnc, unet::sock_type::TCP_c);
+    unet::Server server(8080, fnc, unet::sock_type::TCP_c);
     std::cout << "Server is running on [::]:8080" << std::endl;
     server.listen_p();                                     // 非ブロッキングでリッスン開始
     std::this_thread::sleep_for(std::chrono::seconds(60)); // 60秒後にサーバを停止

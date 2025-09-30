@@ -10,21 +10,27 @@ namespace unet
         fnc = fnc_;
         type = type_;
         thread_use = thread_;
+        addr.ss_family = AF_INET6;
+        ((struct sockaddr_in6 *)&addr)->sin6_addr = in6addr_any;
+        ((struct sockaddr_in6 *)&addr)->sin6_port = htons(port_);
 
-        if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+        if ((sock = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
         {
             fprintf(stderr, "Error. Cannot make socket\n");
             return;
         }
         const int opt = 1;
-        setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt));
-
-        ((struct sockaddr_in *)&addr)->sin_family = AF_INET;
-        ((struct sockaddr_in *)&addr)->sin_addr.s_addr = INADDR_ANY;
-        ((struct sockaddr_in *)&addr)->sin_port = htons(port_);
-        // addr.sin_addr.s_addr = INADDR_ANY;
-        // addr.sin_family = AF_INET;
-        // addr.sin_port = htons(port_);
+        if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt)) < 0)
+        {
+            fprintf(stderr, "setsockopt SO_REUSEADDR error\n");
+            return;
+        }
+        int off = 0;
+        if (setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY,
+                       (char *)&off, sizeof(off)) < 0)
+        {
+            perror("setsockopt IPV6_V6ONLY");
+        }
 
         if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
         {
@@ -69,13 +75,11 @@ namespace unet
 
     int Server::listen_m() noexcept
     {
-        // struct sockaddr_in client;
         IPaddress client;
-        uint len;
+        uint len = sizeof(client);
         int sockcli;
         while (cont == 1)
         {
-            len = sizeof(client);
             sockcli = accept(sock, (struct sockaddr *)&client, &len);
 #ifndef NETCPP_BLOCKING
             u_long val = 1;
