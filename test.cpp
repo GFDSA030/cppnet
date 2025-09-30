@@ -83,8 +83,8 @@ int main()
 
     std::cout << "---- ClientTCPipV6 ----" << std::endl;
     // unet::ClientTCPipV6 client("example.com", 80);
-    unet::ClientTCPipV6 client;
-    client.connect_s("example.com", 80);
+    unet::ClientIPV6 client;
+    client.connect_s("example.com", unet::sock_type::TCP_c, 80);
     client.send_data(unet::http::get_http_request_header("GET", "/", "example.com"));
     std::string response = client.recv_all();
     // std::cout << response << std::endl;

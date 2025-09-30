@@ -11,9 +11,9 @@ namespace unet
 
     ClientSSLipV6::ClientSSLipV6(const char *addr_, const int port_) noexcept
     {
-        set_type(TCP_c);
-        getipaddrinfo(addr_, port_, addrV6, TCP_c);
-        type = TCP_c;
+        set_type(SSL_c);
+        getipaddrinfo(addr_, port_, addrV6, SSL_c);
+        type = SSL_c;
 
         sock = socket(addrV6.ai_family, SOCK_STREAM, 0);
 #ifndef NETCPP_BLOCKING
@@ -35,9 +35,9 @@ namespace unet
     int ClientSSLipV6::connect_s(const char *addr_, const int port_) noexcept
     {
         close_m();
-        set_type(TCP_c);
-        getipaddrinfo(addr_, port_, addrV6, TCP_c);
-        type = TCP_c;
+        set_type(SSL_c);
+        getipaddrinfo(addr_, port_, addrV6, SSL_c);
+        type = SSL_c;
 
         sock = socket(addrV6.ai_family, SOCK_STREAM, 0);
 #ifndef NETCPP_BLOCKING

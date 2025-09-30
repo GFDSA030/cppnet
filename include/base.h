@@ -30,6 +30,7 @@ namespace unet
         int sock = 0;
         // int port = 0;
         struct sockaddr_in addr = {};
+        addrinfo addrV6 = {};
         sock_type type = TCP_c;
         status this_status = offline;
         SSL *ssl = nullptr;

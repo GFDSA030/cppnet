@@ -16,6 +16,16 @@ namespace unet
         sock_type change_type(const sock_type type_) noexcept;
         ~Client();
     };
+    class ClientIPV6 : public net_base
+    {
+    private:
+    public:
+        ClientIPV6() noexcept;
+        ClientIPV6(const char *addr_, const sock_type type_, const int port_ = -1) noexcept;
+        int connect_s(const char *addr_, const sock_type type_, const int port_ = -1) noexcept;
+        sock_type change_type(const sock_type type_) noexcept;
+        ~ClientIPV6();
+    };
     typedef Client Client_com;
 
     class ClientTCP : public net_base
@@ -30,8 +40,6 @@ namespace unet
     class ClientTCPipV6 : public net_base
     {
     private:
-        addrinfo addrV6 = {};
-
     public:
         ClientTCPipV6() noexcept;
         ClientTCPipV6(const char *addr_, const int port_ = 80) noexcept;
@@ -51,8 +59,6 @@ namespace unet
     class ClientSSLipV6 : public net_base
     {
     private:
-        addrinfo addrV6 = {};
-
     public:
         ClientSSLipV6() noexcept;
         ClientSSLipV6(const char *addr_, const int port_ = 443) noexcept;
