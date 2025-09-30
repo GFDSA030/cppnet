@@ -62,7 +62,7 @@ namespace unet
     }
 
     int getipaddrinfo(const char *addr_, int port_, addrinfo &ret, sock_type type_) noexcept
-    { // TODO:
+    {
         addrinfo hints = {}, *res;
         hints.ai_family = AF_UNSPEC; // IPv4 or IPv6
         hints.ai_socktype = type_ == sock_type::TCP_c ? SOCK_STREAM : (type_ == sock_type::UDP_c ? SOCK_DGRAM : NULL);
@@ -82,5 +82,22 @@ namespace unet
         freeaddrinfo(res);
         ((struct sockaddr_in *)ret.ai_addr)->sin_port = htons(port_);
         return success;
+    }
+    std::string ip2str(const addrinfo &addr) noexcept
+    {
+        char ipstr[INET6_ADDRSTRLEN];
+        void *addr_ptr;
+        if (addr.ai_family == AF_INET) // IPv4
+        {
+            struct sockaddr_in *ipv4 = (struct sockaddr_in *)addr.ai_addr;
+            addr_ptr = &(ipv4->sin_addr);
+        }
+        else // IPv6
+        {
+            struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)addr.ai_addr;
+            addr_ptr = &(ipv6->sin6_addr);
+        }
+        inet_ntop(addr.ai_family, addr_ptr, ipstr, sizeof(ipstr));
+        return std::string(ipstr);
     }
 }

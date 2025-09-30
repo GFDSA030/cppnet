@@ -44,20 +44,7 @@ int main()
     addrinfo ret;
     if (unet::getipaddrinfo(addrstr, port, ret) == unet::success)
     {
-        char ipstr[INET6_ADDRSTRLEN];
-        void *addr;
-        if (ret.ai_family == AF_INET) // IPv4
-        {
-            struct sockaddr_in *ipv4 = (struct sockaddr_in *)ret.ai_addr;
-            addr = &(ipv4->sin_addr);
-        }
-        else // IPv6
-        {
-            struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)ret.ai_addr;
-            addr = &(ipv6->sin6_addr);
-        }
-        inet_ntop(ret.ai_family, addr, ipstr, sizeof(ipstr));
-        std::cout << "IP Address: " << ipstr << std::endl;
+        std::cout << "IP Address: " << unet::ip2str(ret) << std::endl;
         std::cout << "Port: " << ntohs(((struct sockaddr_in *)ret.ai_addr)->sin_port) << std::endl;
         std::cout << "Family: " << (ret.ai_family == AF_INET ? "AF_INET" : (ret.ai_family == AF_INET6 ? "AF_INET6" : "Other")) << std::endl;
         std::cout << "Socktype: " << (ret.ai_socktype == SOCK_STREAM ? "SOCK_STREAM" : (ret.ai_socktype == SOCK_DGRAM ? "SOCK_DGRAM" : "Other")) << std::endl;
@@ -89,7 +76,7 @@ int main()
     std::string response = client.recv_all();
     // std::cout << response << std::endl;
     std::cout << unet::http::extract_http_body(response) << std::endl;
-
+    client.close_s();
     unet::netcpp_stop();
     return 0;
 }

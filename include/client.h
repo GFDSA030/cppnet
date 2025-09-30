@@ -16,7 +16,7 @@ namespace unet
         sock_type change_type(const sock_type type_) noexcept;
         ~Client();
     };
-    class ClientIPV6 : public net_base
+    class ClientIPV6 : public net_baseIPV6
     {
     private:
     public:
@@ -37,7 +37,7 @@ namespace unet
         int connect_s(const char *addr_, const int port_ = 80) noexcept;
         ~ClientTCP();
     };
-    class ClientTCPipV6 : public net_base
+    class ClientTCPipV6 : public net_baseIPV6
     {
     private:
     public:
@@ -56,7 +56,7 @@ namespace unet
         int connect_s(const char *addr_, const int port_ = 443) noexcept;
         ~ClientSSL();
     };
-    class ClientSSLipV6 : public net_base
+    class ClientSSLipV6 : public net_baseIPV6
     {
     private:
     public:

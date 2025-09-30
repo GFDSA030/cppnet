@@ -28,6 +28,35 @@ namespace unet
         bool cont = 1;
         void *UserData = nullptr;
 
+    public:
+        int setUserData(void *data) noexcept;
+        size_t get_connection_len() const noexcept;
+        size_t get_connection_no() const noexcept;
+
+        int stop() noexcept;
+    };
+    typedef void (*svrCallbackFnIPV6)(net_coreIPV6 &, void *);
+    class server_baseIPV6
+    {
+    private:
+        static void fn2core(server_baseIPV6 *where, svrCallbackFnIPV6 fnc_, int socket, const addrinfo cli, sock_type type_, SSL *ssl_, void *Udata) noexcept;
+        std::shared_ptr<size_t> connections = std::make_shared<size_t>(0);
+        size_t connection_no = 0;
+
+    protected:
+        server_baseIPV6() noexcept;
+        ~server_baseIPV6();
+
+        static void run_fn(server_baseIPV6 *where, svrCallbackFnIPV6 fnc_, int socket, const addrinfo cli, sock_type type_, SSL *ssl_, bool thread_, void *Udata) noexcept;
+
+        int sock = 0;
+        addrinfo addrV6 = {};
+        svrCallbackFnIPV6 fnc = nullptr;
+        sock_type type = TCP_c;
+        SSL_CTX *ctx = nullptr;
+        bool thread_use = true;
+        bool cont = 1;
+        void *UserData = nullptr;
 
     public:
         int setUserData(void *data) noexcept;
@@ -49,6 +78,18 @@ namespace unet
         int listen_p(bool block = true) noexcept;
     };
     typedef Server Server_com;
+
+    class ServerIPV6 : public server_baseIPV6
+    {
+    private:
+        int listen_m() noexcept;
+
+    public:
+        ServerIPV6(int port_, svrCallbackFnIPV6 fnc_, sock_type type_ = TCP_c, const char *crt = "", const char *pem = "", bool thread_ = true) noexcept;
+        ~ServerIPV6();
+        sock_type change_type(const sock_type type_) noexcept;
+        int listen_p(bool block = true) noexcept;
+    };
 
 #ifdef NETCPP_SSL_AVAILABLE
     class ServerSSL : public server_base
