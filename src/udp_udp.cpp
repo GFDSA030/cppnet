@@ -27,20 +27,23 @@ namespace unet
 
     int UDP::send_data(const char *addr, const char *buf, int len)
     {
-        struct sockaddr_in addr_in;
+        IPaddress addr_in;
         getipaddr(addr, addr_in);
-        addr_in.sin_port = htons(Tport);
-        addr_in.sin_family = AF_INET;
+        ((struct sockaddr_in *)&addr_in)->sin_addr.s_addr = ((struct sockaddr_in *)&addr_in)->sin_addr.s_addr;
+        ((struct sockaddr_in *)&addr_in)->sin_port = htons(Tport);
+        ((struct sockaddr_in *)&addr_in)->sin_family = AF_INET;
+        // addr_in.sin_port = htons(Tport);
+        // addr_in.sin_family = AF_INET;
         return send_m(&addr_in, buf, len);
     }
 
-    int UDP::recv_data(struct sockaddr_in *addr, char *buf, int len)
+    int UDP::recv_data(IPaddress *addr, char *buf, int len)
     {
         return recv_m(addr, buf, len);
     }
     int UDP::recv_data(char *buf, int len)
     {
-        sockaddr_in addr;
+        IPaddress addr;
         return recv_m(&addr, buf, len);
     }
 } // namespace unet

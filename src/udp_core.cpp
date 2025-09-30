@@ -4,11 +4,11 @@ namespace unet
 {
     size_t udp_core::udp_no = 0;
 
-    int udp_core::send_m(const struct sockaddr_in *addr, const char *buf, int len) const noexcept
+    int udp_core::send_m(const IPaddress *addr, const char *buf, int len) const noexcept
     {
         return sendto(Tsock, buf, len, 0, (struct sockaddr *)addr, sizeof(*addr));
     }
-    int udp_core::recv_m(const struct sockaddr_in *addr, char *buf, int len) const noexcept
+    int udp_core::recv_m(const IPaddress *addr, char *buf, int len) const noexcept
     {
         socklen_t addr_len = sizeof(*addr);
         return recvfrom(Rsock, buf, len, 0, (struct sockaddr *)addr, &addr_len);
