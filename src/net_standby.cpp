@@ -29,9 +29,12 @@ namespace unet
         const int opt = 1;
         setsockopt(svScok, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt));
 
-        addr.sin_addr.s_addr = INADDR_ANY;
-        addr.sin_family = AF_INET;
-        addr.sin_port = htons(port);
+        ((struct sockaddr_in *)&addr)->sin_addr.s_addr = INADDR_ANY;
+        ((struct sockaddr_in *)&addr)->sin_family = AF_INET;
+        ((struct sockaddr_in *)&addr)->sin_port = htons(port);
+        // addr.sin_addr.s_addr = INADDR_ANY;
+        // addr.sin_family = AF_INET;
+        // addr.sin_port = htons(port);
 
         if (bind(svScok, (struct sockaddr *)&addr, sizeof(addr)) < 0)
         {
@@ -98,10 +101,14 @@ namespace unet
     {
         close_s();
         getipaddr(addr_, addr);
-        addr.sin_port = htons(port);
-        if (port == -1)
-            addr.sin_port = htons(port);
-        addr.sin_family = AF_INET;
+        type = TCP_c;
+        ((struct sockaddr_in *)&addr)->sin_family = AF_INET;
+        ((struct sockaddr_in *)&addr)->sin_addr.s_addr = ((struct sockaddr_in *)&addr)->sin_addr.s_addr;
+        ((struct sockaddr_in *)&addr)->sin_port = htons(port);
+        // addr.sin_port = htons(port);
+        // if (port == -1)
+        //     addr.sin_port = htons(port);
+        // addr.sin_family = AF_INET;
 
         sock = socket(AF_INET, SOCK_STREAM, 0);
 #ifndef NETCPP_BLOCKING

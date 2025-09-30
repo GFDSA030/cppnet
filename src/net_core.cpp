@@ -4,7 +4,7 @@
 #include <thread>
 namespace unet
 {
-    net_core::net_core(int socket, const struct sockaddr_in cli, sock_type type_, SSL *ssl_) noexcept
+    net_core::net_core(int socket, const IPaddress cli, sock_type type_, SSL *ssl_) noexcept
     {
         sock = socket;
         addr = cli;
@@ -19,7 +19,7 @@ namespace unet
         close_m();
     }
 
-    struct sockaddr_in net_core::remote() const noexcept
+    IPaddress net_core::remote() const noexcept
     {
         return addr;
     }

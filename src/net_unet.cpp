@@ -46,13 +46,16 @@ namespace unet
         }
         return error;
     }
-    int getipaddr(const char *addr_, struct sockaddr_in &ret) noexcept
+    int getipaddr(const char *addr_, IPaddress &ret) noexcept
     {
         struct hostent *hs;
         hs = gethostbyname(addr_);
         if (hs->h_addr_list)
         {
-            ret.sin_addr.s_addr = *(u_long *)hs->h_addr_list[0];
+            ((struct sockaddr_in *)&ret)->sin_family = AF_INET;
+            ((struct sockaddr_in *)&ret)->sin_port = 0;
+            ((struct sockaddr_in *)&ret)->sin_addr.s_addr = *(u_long *)hs->h_addr_list[0];
+            // ret.sin_addr.s_addr = *(u_long *)hs->h_addr_list[0];
         }
         else
         {
@@ -61,7 +64,7 @@ namespace unet
         return success;
     }
 
-    int getipaddrinfo(const char *addr_, int port_, addrinfo &ret, sock_type type_) noexcept
+    int getipaddrinfo(const char *addr_, int port_, IPaddress &ret, sock_type type_) noexcept
     {
         addrinfo hints = {}, *res;
         hints.ai_family = AF_UNSPEC; // IPv4 or IPv6
@@ -78,26 +81,35 @@ namespace unet
         {
             return error;
         }
-        memcpy(&ret, res, sizeof(addrinfo));
+        // memcpy(&ret, res->ai_addr, sizeof(addrinfo));
+        memcpy(&ret, res->ai_addr, sizeof(IPaddress));
         freeaddrinfo(res);
-        ((struct sockaddr_in *)ret.ai_addr)->sin_port = htons(port_);
+        ret.ss_family = res->ai_family;
+        ((struct sockaddr_in *)&ret)->sin_port = htons(port_);
+        // ((struct sockaddr_in *)ret.ai_addr)->sin_port = htons(port_);
         return success;
     }
-    std::string ip2str(const addrinfo &addr) noexcept
+    std::string ip2str(const IPaddress &addr) noexcept
     {
         char ipstr[INET6_ADDRSTRLEN];
         void *addr_ptr;
-        if (addr.ai_family == AF_INET) // IPv4
+        // if (addr.ai_family == AF_INET) // IPv4
+        if (addr.ss_family == AF_INET) // IPv4
         {
-            struct sockaddr_in *ipv4 = (struct sockaddr_in *)addr.ai_addr;
-            addr_ptr = &(ipv4->sin_addr);
+            // struct sockaddr_in *ipv4 = (struct sockaddr_in *)addr.ai_addr;
+            // struct sockaddr_in *ipv4 = (struct sockaddr_in *)&addr;
+            // addr_ptr = &(ipv4->sin_addr);
+            addr_ptr = &(((struct sockaddr_in *)&addr)->sin_addr);
         }
         else // IPv6
         {
-            struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)addr.ai_addr;
-            addr_ptr = &(ipv6->sin6_addr);
+            // struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)addr.ai_addr;
+            // struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)&addr;
+            // addr_ptr = &(ipv6->sin6_addr);
+            addr_ptr = &(((struct sockaddr_in6 *)&addr)->sin6_addr);
         }
-        inet_ntop(addr.ai_family, addr_ptr, ipstr, sizeof(ipstr));
+        // inet_ntop(addr.ai_family, addr_ptr, ipstr, sizeof(ipstr));
+        inet_ntop(((struct sockaddr_in *)&addr)->sin_family, addr_ptr, ipstr, sizeof(ipstr));
         return std::string(ipstr);
     }
 }

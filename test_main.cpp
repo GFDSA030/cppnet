@@ -11,7 +11,7 @@ int main()
 
     // client.h
     // Client_comでTCP通信 (HTTP)
-    Client_com client_com("example.com", TCP_c);
+    Client client_com("example.com", TCP_c);
     std::cout << "Client_com インスタンス生成 (TCP)" << std::endl;
     if (client_com.connect_s("example.com", TCP_c) == 0)
     {
@@ -46,44 +46,6 @@ int main()
     else
     {
         std::cout << "Client_com::connect_s() (SSL) 失敗" << std::endl;
-    }
-
-    // example.com へ HTTP通信
-    ClientTCP client_tcp("example.com");
-    std::cout << "ClientTCP インスタンス生成 (example.com:80)" << std::endl;
-    if (client_tcp.connect_s("example.com") == 0)
-    {
-        std::cout << "ClientTCP::connect_s() 成功" << std::endl;
-        std::string http_req = "GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n";
-        client_tcp.send_data(http_req);
-        std::cout << "HTTPリクエスト送信" << std::endl;
-        std::string http_resp;
-        client_tcp.recv_data(http_resp, 4096);
-        std::cout << "HTTPレスポンス受信\n"
-                  << std::endl;
-    }
-    else
-    {
-        std::cout << "ClientTCP::connect_s() 失敗" << std::endl;
-    }
-
-    // example.com へ HTTPS通信
-    ClientSSL client_ssl("example.com");
-    std::cout << "ClientSSL インスタンス生成 (example.com:443)" << std::endl;
-    if (client_ssl.connect_s("example.com") == 0)
-    {
-        std::cout << "ClientSSL::connect_s() 成功" << std::endl;
-        std::string https_req = "GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n";
-        client_ssl.send_data(https_req);
-        std::cout << "HTTPSリクエスト送信" << std::endl;
-        std::string https_resp;
-        client_ssl.recv_data(https_resp, 4096);
-        std::cout << "HTTPSレスポンス受信\n"
-                  << std::endl;
-    }
-    else
-    {
-        std::cout << "ClientSSL::connect_s() 失敗" << std::endl;
     }
 
     // server.h

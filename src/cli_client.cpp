@@ -8,19 +8,18 @@ namespace unet
     Client::Client(const char *addr_, const sock_type type_, const int port_) noexcept
     {
         set_type(type_);
-        getipaddr(addr_, addr);
-        addr.sin_port = htons(port_);
-        if (port_ == -1)
-            addr.sin_port = htons(type_);
-        addr.sin_family = AF_INET;
         type = type_;
+        if (port_ == -1)
+            getipaddrinfo(addr_, type_, addr, type_);
+        else
+            getipaddrinfo(addr_, port_, addr, type_);
 
-        sock = socket(AF_INET, SOCK_STREAM, 0);
+        sock = socket(addr.ss_family, SOCK_STREAM, 0);
 #ifndef NETCPP_BLOCKING
         u_long val = 1;
         ioctl(sock, FIONBIO, &val);
 #endif // NETCPP_BLOCKING
-        connect(sock, (struct sockaddr *)&addr, sizeof(addr));
+        connect(sock, ((struct sockaddr *)&addr), sizeof(addr));
 
 #ifdef NETCPP_SSL_AVAILABLE
         if (type == SSL_c)
@@ -44,19 +43,18 @@ namespace unet
     {
         close_m();
         set_type(type_);
-        getipaddr(addr_, addr);
-        addr.sin_port = htons(port_);
-        if (port_ == -1)
-            addr.sin_port = htons(type_);
-        addr.sin_family = AF_INET;
         type = type_;
+        if (port_ == -1)
+            getipaddrinfo(addr_, type_, addr, type_);
+        else
+            getipaddrinfo(addr_, port_, addr, type_);
 
-        sock = socket(AF_INET, SOCK_STREAM, 0);
+        sock = socket(addr.ss_family, SOCK_STREAM, 0);
 #ifndef NETCPP_BLOCKING
         u_long val = 1;
         ioctl(sock, FIONBIO, &val);
 #endif // NETCPP_BLOCKING
-        connect(sock, (struct sockaddr *)&addr, sizeof(addr));
+        connect(sock, ((struct sockaddr *)&addr), sizeof(addr));
 
 #ifdef NETCPP_SSL_AVAILABLE
         if (type == SSL_c)
