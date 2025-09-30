@@ -48,11 +48,31 @@ namespace unet
         size_t get_this_no() const noexcept;
 
     public:
+        /// @brief データ送信
+        /// @param data データポインタ
+        /// @param len データ長
+        /// @return 送信バイト数、エラー時は-1
         int send_data(const void *data, size_t len) const noexcept;
+        /// @brief データ受信
+        /// @param buf データバッファ
+        /// @param len 受信バッファ長
+        /// @return 受信バイト数、エラー時は-1
         int recv_data(void *buf, size_t len) const noexcept;
+        /// @brief Stringデータ送信
+        /// @param data データ
+        /// @param len データ長(0ならdata.size())
+        /// @return 送信バイト数、エラー時は-1
         int send_data(const std::string &data, size_t len = 0) const noexcept;
+        /// @brief Stringデータ受信
+        /// @param buf データバッファ
+        /// @param len 受信バッファ長
+        /// @return 受信バイト数、エラー時は-1
         int recv_data(std::string &buf, size_t len) const noexcept;
+        /// @brief 全データ受信(ブロッキング)
+        /// @return 受信データ、エラー時は空文字
         std::string recv_all() const noexcept;
+        /// @brief ソケットクローズ
+        /// @return クローズ成功で0、エラー時は-1
         int close_s() noexcept;
     };
 

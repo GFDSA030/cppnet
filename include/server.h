@@ -29,10 +29,18 @@ namespace unet
         void *UserData = nullptr;
 
     public:
+        /// @brief ユーザーデータ設定
+        /// @param data ユーザーデータポインタ
+        /// @return エラー時は-1、成功で0
         int setUserData(void *data) noexcept;
+        /// @brief 接続中のコネクション数取得
+        /// @return 現在のコネクション数
         size_t get_connection_len() const noexcept;
+        /// @brief 接続されたコネクション数取得
+        /// @return 今までの接続数
         size_t get_connection_no() const noexcept;
-
+        /// @brief サーバー停止
+        /// @return エラー時は-1、成功で0
         int stop() noexcept;
     };
 
@@ -42,9 +50,22 @@ namespace unet
         int listen_m() noexcept;
 
     public:
+        /// @brief サーバークラス
+        /// @param port_ 待ち受けポート
+        /// @param fnc_ コールバック関数
+        /// @param type_ 接続タイプ
+        /// @param crt 証明書ファイル
+        /// @param pem 鍵ファイル
+        /// @param thread_ スレッド使用
         Server(int port_, svrCallbackFn fnc_, sock_type type_ = TCP_c, const char *crt = "", const char *pem = "", bool thread_ = true) noexcept;
         ~Server();
+        /// @brief 接続タイプ変更
+        /// @param type_ 接続タイプ
+        /// @return 変更後のタイプ、エラー時はunknown
         sock_type change_type(const sock_type type_) noexcept;
+        /// @brief サーバーリッスン(非ブロッキング)
+        /// @param block ブロッキングモード(trueならブロッキング)
+        /// @return 成功で0、エラー時は-1
         int listen_p(bool block = true) noexcept;
     };
     typedef Server Server_com;

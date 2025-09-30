@@ -3,7 +3,7 @@
 // DONE: ipv6 support
 // TODO: memory leak check
 // TODO: error handling
-// TODO: add more comments
+// DONE: add more comments
 // TODO: child process support 子プロセスに処理を投げる
 #include <netdefs.h>
 
