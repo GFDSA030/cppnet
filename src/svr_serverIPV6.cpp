@@ -4,36 +4,40 @@
 #include <thread>
 namespace unet
 {
-    ServerIPV6::ServerIPV6(int port_, svrCallbackFnIPV6 fnc_, sock_type type_, const char *crt, const char *pem, bool thread_) noexcept
+    ServerIPV6::ServerIPV6(int port_, svrCallbackFn fnc_, sock_type type_, const char *crt, const char *pem, bool thread_) noexcept
     {
-        sockaddr_storage addr;
-        memset(&addr, 0, sizeof(addr));
         netcpp_start();
         fnc = fnc_;
         type = type_;
         thread_use = thread_;
-        addrV6.ai_family = AF_INET6;
-        addrV6.ai_socktype = SOCK_STREAM;
-        addrV6.ai_flags = AI_PASSIVE;
-        if (getipaddrinfo("::", port_, addrV6, type) != success)
+        addr.ss_family = AF_INET6;
+        ((struct sockaddr_in6 *)&addr)->sin6_addr = in6addr_any;
+        ((struct sockaddr_in6 *)&addr)->sin6_port = htons(port_);
+
+        if ((sock = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
         {
-            fprintf(stderr, "Error. Cannot get address info\n");
+            fprintf(stderr, "Error. Cannot make socket\n");
             return;
         }
-        // if ((sock = socket(addrV6.ai_family, SOCK_STREAM, 0)) < 0)
-        // {
-        //     fprintf(stderr, "Error. Cannot make socket\n");
-        //     return;
-        // }
-        // const int opt = 1;
-        // setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt));
+        const int opt = 1;
+        if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt)) < 0)
+        {
+            fprintf(stderr, "setsockopt SO_REUSEADDR error\n");
+            return;
+        }
+        int off = 0;
+        if (setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY,
+                       (char *)&off, sizeof(off)) < 0)
+        {
+            perror("setsockopt IPV6_V6ONLY");
+        }
 
-        // if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-        // {
-        //     fprintf(stderr, "Error. Cannot bind socket\n");
-        //     return;
-        // }
-        // listen(sock, 25);
+        if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+        {
+            fprintf(stderr, "Error. Cannot bind socket\n");
+            return;
+        }
+        listen(sock, 25);
 
 #ifdef NETCPP_SSL_AVAILABLE
         if (type != SSL_c)
@@ -71,12 +75,11 @@ namespace unet
 
     int ServerIPV6::listen_m() noexcept
     {
-        struct sockaddr_in client;
-        uint len;
+        IPaddress client;
+        uint len = sizeof(client);
         int sockcli;
         while (cont == 1)
         {
-            len = sizeof(client);
             sockcli = accept(sock, (struct sockaddr *)&client, &len);
 #ifndef NETCPP_BLOCKING
             u_long val = 1;
@@ -98,7 +101,7 @@ namespace unet
             }
 #endif
 
-            // run_fn(this, fnc, sockcli, client, type, ssl, thread_use, UserData);
+            run_fn(this, fnc, sockcli, client, type, ssl, thread_use, UserData);
         }
         return success;
     }

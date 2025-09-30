@@ -20,9 +20,12 @@ namespace unet
         const int opt = 1;
         setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt));
 
-        addr.sin_addr.s_addr = INADDR_ANY;
-        addr.sin_family = AF_INET;
-        addr.sin_port = htons(port_);
+        ((struct sockaddr_in *)&addr)->sin_family = AF_INET;
+        ((struct sockaddr_in *)&addr)->sin_addr.s_addr = INADDR_ANY;
+        ((struct sockaddr_in *)&addr)->sin_port = htons(port_);
+        // addr.sin_addr.s_addr = INADDR_ANY;
+        // addr.sin_family = AF_INET;
+        // addr.sin_port = htons(port_);
 
         if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
         {
@@ -69,9 +72,12 @@ namespace unet
         const int opt = 1;
         setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt));
 
-        addr.sin_addr.s_addr = INADDR_ANY;
-        addr.sin_family = AF_INET;
-        addr.sin_port = htons(port_);
+        ((struct sockaddr_in *)&addr)->sin_family = AF_INET;
+        ((struct sockaddr_in *)&addr)->sin_addr.s_addr = INADDR_ANY;
+        ((struct sockaddr_in *)&addr)->sin_port = htons(port_);
+        // addr.sin_addr.s_addr = INADDR_ANY;
+        // addr.sin_family = AF_INET;
+        // addr.sin_port = htons(port_);
 
         if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
         {
@@ -109,7 +115,8 @@ namespace unet
 
     int ServerSSL::listen_m() noexcept
     {
-        struct sockaddr_in client;
+        // struct sockaddr_in client;
+        IPaddress client;
         uint len;
         int sockcli;
         while (cont == 1)

@@ -27,7 +27,7 @@ namespace unet
         UserData = data;
         return success;
     }
-    void server_base::fn2core(server_base *where, svrCallbackFn fnc_, int socket, const struct sockaddr_in cli, sock_type type_, SSL *ssl_, void *Udata) noexcept
+    void server_base::fn2core(server_base *where, svrCallbackFn fnc_, int socket, const IPaddress cli, sock_type type_, SSL *ssl_, void *Udata) noexcept
     {
         std::shared_ptr<size_t> connections = where->connections;
         net_core mt(socket, cli, type_, ssl_);
@@ -35,7 +35,7 @@ namespace unet
         mt.close_s();
         return;
     }
-    void server_base::run_fn(server_base *where, svrCallbackFn fnc_, int socket, const struct sockaddr_in cli, sock_type type_, SSL *ssl_, bool thread_, void *Udata) noexcept
+    void server_base::run_fn(server_base *where, svrCallbackFn fnc_, int socket, const IPaddress cli, sock_type type_, SSL *ssl_, bool thread_, void *Udata) noexcept
     {
         where->connection_no++;
         if (thread_)

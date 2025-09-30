@@ -1,6 +1,26 @@
 #include <iostream>
 #include <unet.h>
 #include <http.h>
+#include <unistd.h>
+#include <chrono>
+#include <thread>
+void fnc(unet::net_core &nc, void *udata)
+{
+    // std::string request = nc.recv_all();
+    char buffer[4096];
+    int bytes_received = nc.recv_data(buffer, sizeof(buffer) - 1);
+    std::cout << "from " << unet::ip2str(nc.remote())
+              << "\nReceived request:\n"
+              << buffer << std::endl;
+    // std::string response_body = "<html><body><h1>Hello, World!</h1></body></html>";
+    std::string response_header = "HTTP/1.1 200 OK"
+                                  "\r\nContent-Type: text/html; charset=UTF-8"
+                                  "\r\nConnection: close"
+                                  "\r\n\r\n"
+                                  "Hello, World!";
+    nc.send_data(response_header, response_header.size());
+    nc.close_s();
+}
 int main()
 {
     unet::netcpp_start();
@@ -75,6 +95,14 @@ int main()
     // std::cout << response << std::endl;
     std::cout << unet::http::extract_http_body(response) << std::endl;
     client.close_s();
+
+    std::cout << "---- ServerIPV6 ----" << std::endl;
+    unet::ServerIPV6 server(8080, fnc, unet::sock_type::TCP_c);
+    std::cout << "Server is running on [::]:8080" << std::endl;
+    server.listen_p();                                     // 非ブロッキングでリッスン開始
+    std::this_thread::sleep_for(std::chrono::seconds(60)); // 60秒後にサーバを停止
+    server.stop();
+
     unet::netcpp_stop();
     return 0;
 }
