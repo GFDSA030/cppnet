@@ -1,6 +1,6 @@
 #include <iostream>
-#include "include/infnc.h"
 #include <unet.h>
+#include <http.h>
 int main()
 {
     unet::netcpp_start();
@@ -85,9 +85,10 @@ int main()
     // unet::ClientTCPipV6 client("example.com", 80);
     unet::ClientTCPipV6 client;
     client.connect_s("example.com", 80);
-    client.send_data("GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n");
+    client.send_data(unet::http::get_http_request_header("GET", "/", "example.com"));
     std::string response = client.recv_all();
-    std::cout << response << std::endl;
+    // std::cout << response << std::endl;
+    std::cout << unet::http::extract_http_body(response) << std::endl;
 
     unet::netcpp_stop();
     return 0;
