@@ -82,6 +82,7 @@ static volatile unsigned long long testno = 0;
 
 namespace unet
 {
+    typedef sockaddr_storage IPaddress;
 
     enum sock_type : int
     {

@@ -5,7 +5,6 @@
 
 namespace unet
 {
-
     class Client : public net_base
     {
     private:
@@ -16,55 +15,5 @@ namespace unet
         sock_type change_type(const sock_type type_) noexcept;
         ~Client();
     };
-    class ClientIPV6 : public net_baseIPV6
-    {
-    private:
-    public:
-        ClientIPV6() noexcept;
-        ClientIPV6(const char *addr_, const sock_type type_, const int port_ = -1) noexcept;
-        int connect_s(const char *addr_, const sock_type type_, const int port_ = -1) noexcept;
-        sock_type change_type(const sock_type type_) noexcept;
-        ~ClientIPV6();
-    };
-    typedef Client Client_com;
-
-    class ClientTCP : public net_base
-    {
-    private:
-    public:
-        ClientTCP() noexcept;
-        ClientTCP(const char *addr_, const int port_ = 80) noexcept;
-        int connect_s(const char *addr_, const int port_ = 80) noexcept;
-        ~ClientTCP();
-    };
-    class ClientTCPipV6 : public net_baseIPV6
-    {
-    private:
-    public:
-        ClientTCPipV6() noexcept;
-        ClientTCPipV6(const char *addr_, const int port_ = 80) noexcept;
-        int connect_s(const char *addr_, const int port_ = 80) noexcept;
-        ~ClientTCPipV6();
-    };
-#ifdef NETCPP_SSL_AVAILABLE
-    class ClientSSL : public net_base
-    {
-    private:
-    public:
-        ClientSSL() noexcept;
-        ClientSSL(const char *addr_, const int port_ = 443) noexcept;
-        int connect_s(const char *addr_, const int port_ = 443) noexcept;
-        ~ClientSSL();
-    };
-    class ClientSSLipV6 : public net_baseIPV6
-    {
-    private:
-    public:
-        ClientSSLipV6() noexcept;
-        ClientSSLipV6(const char *addr_, const int port_ = 443) noexcept;
-        int connect_s(const char *addr_, const int port_ = 443) noexcept;
-        ~ClientSSLipV6();
-    };
-#endif // NETCPP_SSL_AVAILABLE
 }
 #endif

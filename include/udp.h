@@ -10,8 +10,8 @@ namespace unet
         static size_t udp_no;
 
     protected:
-        int send_m(const struct sockaddr_in *addr, const char *buf, int len) const noexcept;
-        int recv_m(const struct sockaddr_in *addr, char *buf, int len) const noexcept;
+        int send_m(const IPaddress *addr, const char *buf, int len) const noexcept;
+        int recv_m(const IPaddress *addr, char *buf, int len) const noexcept;
         int Tsock = 0;
         int Tport = 0;
         int Rsock = 0;
@@ -32,7 +32,7 @@ namespace unet
         int set_port(int Tx_, int Rx_);
         int send_data(const char *addr_, const char *buf, int len);
         int recv_data(char *buf, int len);
-        int recv_data(struct sockaddr_in *addr, char *buf, int len);
+        int recv_data(IPaddress *addr, char *buf, int len);
     };
 }
 
