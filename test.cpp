@@ -81,6 +81,14 @@ int main()
         std::cout << "getipaddrinfo error" << std::endl;
     }
 
+    std::cout << "---- ClientTCPipV6 ----" << std::endl;
+    // unet::ClientTCPipV6 client("example.com", 80);
+    unet::ClientTCPipV6 client;
+    client.connect_s("example.com", 80);
+    client.send_data("GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n");
+    std::string response = client.recv_all();
+    std::cout << response << std::endl;
+
     unet::netcpp_stop();
     return 0;
 }

@@ -57,53 +57,8 @@ namespace unet
         shutdown(sock, SHUT_RW);
         return close(sock);
     }
-#endif // NETCPP_SSL_AVAILABLE
-    /*
-    int net_base::send_m(const void *data, size_t len) const noexcept
-    {
-        if (this_status == offline)
-            return error;
-#ifdef NETCPP_SSL_AVAILABLE
-        if (type == SSL_c)
-            return SSL_write(ssl, (char *)data, len);
-#endif // NETCPP_SSL_AVAILABLE
-        return send(sock, (char *)data, len, 0);
-    }
+#endif
 
-    int net_base::recv_m(void *buf, size_t len) const noexcept
-    {
-        if (this_status == offline)
-            return error;
-#ifdef NETCPP_SSL_AVAILABLE
-        if (type == SSL_c)
-            return SSL_read(ssl, (char *)buf, len);
-#endif // NETCPP_SSL_AVAILABLE
-        return recv(sock, (char *)buf, len, 0);
-    }
-
-    int net_base::close_m() noexcept
-    {
-        if (this_status == offline)
-            return error;
-#ifdef NETCPP_SSL_AVAILABLE
-        if (ctx != nullptr)
-        {
-            SSL_CTX_free(ctx);
-            ctx = nullptr;
-        }
-        if (ssl != nullptr)
-        {
-            SSL_shutdown(ssl);
-            SSL_free(ssl);
-            ssl = nullptr;
-        }
-#endif // NETCPP_SSL_AVAILABLE
-
-        this_status = offline;
-        shutdown(sock, SHUT_RW);
-        return close(sock);
-    }
-    */
     int net_base::set_type(sock_type type_) noexcept
     {
         switch (type_)

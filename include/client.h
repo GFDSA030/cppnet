@@ -27,6 +27,16 @@ namespace unet
         int connect_s(const char *addr_, const int port_ = 80) noexcept;
         ~ClientTCP();
     };
+    class ClientTCPipV6 : public net_base
+    {
+    private:
+        addrinfo addrV6 = {};
+    public:
+        ClientTCPipV6() noexcept;
+        ClientTCPipV6(const char *addr_, const int port_ = 80) noexcept;
+        int connect_s(const char *addr_, const int port_ = 80) noexcept;
+        ~ClientTCPipV6();
+    };
 #ifdef NETCPP_SSL_AVAILABLE
     class ClientSSL : public net_base
     {
