@@ -25,76 +25,147 @@ namespace unet
         IPaddress svaddr = {};
         close_s();
 
-        if ((svScok = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
-        {
-            fprintf(stderr, "Error. Cannot make socket\n");
-            return error;
-        }
         const int opt = 1;
-        if (setsockopt(svScok, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt)) < 0)
+        // Try IPv6 socket first
+        svScok = socket(AF_INET6, SOCK_STREAM, 0);
+        if (svScok < 0)
         {
-            fprintf(stderr, "setsockopt SO_REUSEADDR error\n");
-            return error;
+            perror("Error. Cannot create IPv6 socket");
+            // try IPv4 as fallback
+            svScok = socket(AF_INET, SOCK_STREAM, 0);
+            if (svScok < 0)
+            {
+                perror("Error. Cannot create IPv4 socket either");
+                return error;
+            }
+            // configure IPv4 socket
+            if (setsockopt(svScok, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt)) < 0)
+            {
+                perror("setsockopt SO_REUSEADDR error (ipv4)");
+                close(svScok);
+                svScok = 0;
+                return error;
+            }
+            // bind IPv4 ANY
+            struct sockaddr_in sv4 = {};
+            sv4.sin_family = AF_INET;
+            sv4.sin_addr.s_addr = INADDR_ANY;
+            sv4.sin_port = htons(port);
+            if (bind(svScok, (struct sockaddr *)&sv4, sizeof(sv4)) < 0)
+            {
+                perror("Error. Cannot bind IPv4 socket");
+                close(svScok);
+                svScok = 0;
+                return error;
+            }
         }
-        int off = 0;
-        if (setsockopt(svScok, IPPROTO_IPV6, IPV6_V6ONLY,
-                       (char *)&off, sizeof(off)) < 0)
+        else
         {
-            perror("setsockopt IPV6_V6ONLY");
-        }
+            // configure IPv6 socket
+            if (setsockopt(svScok, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt)) < 0)
+            {
+                perror("setsockopt SO_REUSEADDR error (ipv6)");
+                close(svScok);
+                svScok = 0;
+                return error;
+            }
+            int off = 1; // set IPv6-only to avoid conflicts with IPv4 binds
+            if (setsockopt(svScok, IPPROTO_IPV6, IPV6_V6ONLY,
+                           (char *)&off, sizeof(off)) < 0)
+            {
+                perror("setsockopt IPV6_V6ONLY");
+                // non-fatal, continue
+            }
 
-        svaddr.ss_family = AF_INET6;
-        ((struct sockaddr_in6 *)&svaddr)->sin6_addr = in6addr_any;
-        ((struct sockaddr_in6 *)&svaddr)->sin6_port = htons(port);
+            svaddr.ss_family = AF_INET6;
+            ((struct sockaddr_in6 *)&svaddr)->sin6_addr = in6addr_any;
+            ((struct sockaddr_in6 *)&svaddr)->sin6_port = htons(port);
 
-        if (bind(svScok, (struct sockaddr *)&svaddr, sizeof(svaddr)) < 0)
-        {
-            fprintf(stderr, "Error. Cannot bind socket\n");
-            return error;
+            if (bind(svScok, (struct sockaddr *)&svaddr, sizeof(struct sockaddr_in6)) < 0)
+            {
+                perror("Error. Cannot bind IPv6 socket");
+                close(svScok);
+                svScok = 0;
+                // fallback: try IPv4
+                svScok = socket(AF_INET, SOCK_STREAM, 0);
+                if (svScok < 0)
+                {
+                    perror("Error. Cannot create IPv4 socket (fallback)");
+                    return error;
+                }
+                if (setsockopt(svScok, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt)) < 0)
+                {
+                    perror("setsockopt SO_REUSEADDR error (ipv4 fallback)");
+                    close(svScok);
+                    svScok = 0;
+                    return error;
+                }
+                struct sockaddr_in sv4 = {};
+                sv4.sin_family = AF_INET;
+                sv4.sin_addr.s_addr = INADDR_ANY;
+                sv4.sin_port = htons(port);
+                if (bind(svScok, (struct sockaddr *)&sv4, sizeof(sv4)) < 0)
+                {
+                    perror("Error. Cannot bind IPv4 socket (fallback)");
+                    close(svScok);
+                    svScok = 0;
+                    return error;
+                }
+            }
         }
         // listen(svScok, 25);
         if (listen(svScok, 25) < 0)
         {
-            fprintf(stderr, "Error. Cannot listen socket\n");
+            perror("Error. Cannot listen socket");
+            close(svScok);
+            svScok = 0;
             return error;
         }
 
 #ifdef NETCPP_SSL_AVAILABLE
-        if (type != SSL_c)
-            return success;
-        ctx = SSL_CTX_new(TLS_server_method());
-        if (!ctx)
+        // If server is configured for SSL, initialize SSL context and load cert/key
+        if (type == SSL_c)
         {
-            perror("Error: SSL context\n");
-            ERR_print_errors_fp(stderr);
-            return error;
-        }
-        // load crt
-        if (!SSL_CTX_use_certificate_file(ctx, crt, SSL_FILETYPE_PEM))
-        {
-            perror("Error: SSL_CTX_use_certificate_file()\n");
-            ERR_print_errors_fp(stderr);
-            return error;
-        }
-        // load private key
-        if (!SSL_CTX_use_PrivateKey_file(ctx, pem, SSL_FILETYPE_PEM))
-        {
-            perror("Error: SSL_CTX_use_PrivateKey_file()\n");
-            ERR_print_errors_fp(stderr);
-            return error;
+            ctx = SSL_CTX_new(TLS_server_method());
+            if (!ctx)
+            {
+                perror("Error: SSL context\n");
+                ERR_print_errors_fp(stderr);
+                return error;
+            }
+            // load crt
+            if (!SSL_CTX_use_certificate_file(ctx, crt, SSL_FILETYPE_PEM))
+            {
+                perror("Error: SSL_CTX_use_certificate_file()\n");
+                ERR_print_errors_fp(stderr);
+                SSL_CTX_free(ctx);
+                ctx = nullptr;
+                return error;
+            }
+            // load private key
+            if (!SSL_CTX_use_PrivateKey_file(ctx, pem, SSL_FILETYPE_PEM))
+            {
+                perror("Error: SSL_CTX_use_PrivateKey_file()\n");
+                ERR_print_errors_fp(stderr);
+                SSL_CTX_free(ctx);
+                ctx = nullptr;
+                return error;
+            }
         }
 #else
-        if (type_ == SSL_c)
+        // SSL not available
+        if (type == SSL_c)
         {
             fprintf(stderr, "ssl isn't avilable\n");
             return error;
         }
 #endif
-        uint len = sizeof(addr);
+        socklen_t len = sizeof(addr);
         sock = accept(svScok, (struct sockaddr *)&addr, &len);
         if (sock < 0)
         {
-            fprintf(stderr, "Error. Cannot accept socket\n");
+            perror("Error. Cannot accept socket");
+            // don't close svScok here, caller may retry accept
             return error;
         }
 #ifndef NETCPP_BLOCKING
@@ -111,8 +182,12 @@ namespace unet
             {
                 perror("Error: SSL_accept()");
                 ERR_print_errors_fp(stderr);
+                SSL_free(ssl);
+                ssl = nullptr;
                 return error;
             }
+            // store accepted ssl into object for later send/recv
+            this->ssl = ssl;
         }
 #endif
         this_status = online;
@@ -121,8 +196,8 @@ namespace unet
     int Standby::connect_s(const char *addr_) noexcept
     {
         close_s();
-        getipaddrinfo(addr_, type, addr, type);
-        ((struct sockaddr_in6 *)&addr)->sin6_port = htons(port);
+        // getipaddrinfo expects (addr, port, ret, type)
+        getipaddrinfo(addr_, port, addr, type);
 
         sock = socket(addr.ss_family, SOCK_STREAM, 0);
 #ifndef NETCPP_BLOCKING
@@ -143,7 +218,7 @@ namespace unet
             SSL_connect(ssl);
         }
 #else
-        if (type_ == SSL_c)
+        if (type == SSL_c)
         {
             fprintf(stderr, "ssl isn't avilable\n");
             return error;
@@ -159,9 +234,10 @@ namespace unet
     int Standby::close_s() noexcept
     {
         close_m();
-        if (svScok != 0)
+        if (svScok > 0)
         {
             close(svScok);
+            svScok = 0;
         }
         this_status = offline;
         return success;
