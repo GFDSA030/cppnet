@@ -11,10 +11,10 @@ namespace unet
 
     protected:
         int send_m(const IPaddress *addr, const char *buf, int len) const noexcept;
-        int recv_m(const IPaddress *addr, char *buf, int len) const noexcept;
-        int Tsock = 0;
+        int recv_m(IPaddress *addr, char *buf, int len) const noexcept;
+        mutable int Tsock = 0;
         int Tport = 0;
-        int Rsock = 0;
+        mutable int Rsock = 0;
         int Rport = 0;
 
     public:

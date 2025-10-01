@@ -6,33 +6,37 @@ namespace unet
 
     int udp_core::send_m(const IPaddress *addr, const char *buf, int len) const noexcept
     {
-        return sendto(Tsock, buf, len, 0, (struct sockaddr *)addr, sizeof(*addr));
+        Tsock = socket(addr->ss_family, SOCK_DGRAM, 0);
+        int ret = sendto(Tsock, buf, len, 0, (struct sockaddr *)addr, sizeof(*addr));
+        close(Tsock);
+        Tsock = 0;
+        return ret;
     }
-    int udp_core::recv_m(const IPaddress *addr, char *buf, int len) const noexcept
+    int udp_core::recv_m(IPaddress *addr, char *buf, int len) const noexcept
     {
-        socklen_t addr_len = sizeof(*addr);
-        return recvfrom(Rsock, buf, len, 0, (struct sockaddr *)addr, &addr_len);
+        socklen_t addr_len = sizeof(IPaddress);
+        int ret = recvfrom(Rsock, buf, len, 0, (struct sockaddr *)addr, &addr_len);
+        return ret;
     }
     udp_core::udp_core()
     {
         netcpp_start();
-        Tsock = socket(AF_INET, SOCK_DGRAM, 0);
-        Rsock = socket(AF_INET, SOCK_DGRAM, 0);
-        if ((Tsock | Rsock) < 0)
+        Rsock = socket(AF_INET6, SOCK_DGRAM, 0);
+        if (Rsock < 0)
         {
-            perror("socket");
+            fprintf(stderr, "Error. Cannot make socket\n");
             return;
         }
-
-        struct sockaddr_in addr;
-        addr.sin_family = AF_INET;
-        addr.sin_port = htons(Rport);
-        addr.sin_addr.s_addr = INADDR_ANY;
-        bind(Rsock, (struct sockaddr *)&addr, sizeof(addr));
+        int off = 0;
+        if (setsockopt(Rsock, IPPROTO_IPV6, IPV6_V6ONLY,
+                       (char *)&off, sizeof(off)) < 0)
+        {
+            perror("setsockopt IPV6_V6ONLY");
+        }
 
 #ifndef NETCPP_BLOCKING
         u_long val = 1;
-        ioctl(sock, FIONBIO, &val);
+        ioctl(Rsock, FIONBIO, &val);
 #endif // NETCPP_BLOCKING
         udp_no++;
     }
@@ -46,6 +50,7 @@ namespace unet
         if (Rsock > 0)
         {
             close(Rsock);
+            Rsock = 0;
         }
         udp_no--;
         netcpp_stop();

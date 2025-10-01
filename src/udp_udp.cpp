@@ -22,18 +22,18 @@ namespace unet
         }
         Tport = Tx_;
         Rport = Rx_;
+        IPaddress addr_ = {};
+        ((struct sockaddr_in6 *)&addr_)->sin6_family = AF_INET6;
+        ((struct sockaddr_in6 *)&addr_)->sin6_port = htons(Rport);
+        ((struct sockaddr_in6 *)&addr_)->sin6_addr = in6addr_any;
+        bind(Rsock, (struct sockaddr *)&addr_, sizeof(addr_));
         return success;
     }
 
     int UDP::send_data(const char *addr, const char *buf, int len)
     {
-        IPaddress addr_in;
-        getipaddr(addr, addr_in);
-        ((struct sockaddr_in *)&addr_in)->sin_addr.s_addr = ((struct sockaddr_in *)&addr_in)->sin_addr.s_addr;
-        ((struct sockaddr_in *)&addr_in)->sin_port = htons(Tport);
-        ((struct sockaddr_in *)&addr_in)->sin_family = AF_INET;
-        // addr_in.sin_port = htons(Tport);
-        // addr_in.sin_family = AF_INET;
+        IPaddress addr_in = {};
+        getipaddrinfo(addr, Tport, addr_in);
         return send_m(&addr_in, buf, len);
     }
 

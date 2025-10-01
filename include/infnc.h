@@ -45,6 +45,14 @@ namespace unet
     void netinit() noexcept;
     void netquit() noexcept;
     int netcpp_setstatus(status s) noexcept;
+    class infnc
+    {
+    private:
+    public:
+        infnc();
+        ~infnc();
+    };
+
 } // namespace unet
 
 #endif

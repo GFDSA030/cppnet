@@ -69,4 +69,15 @@ namespace unet
 
 #endif // NETCPP_SSL_AVAILABLE
 
+    infnc::infnc()
+    {
+        netcpp_start();
+    }
+
+    infnc::~infnc()
+    {
+        netcpp_stop();
+    }
+    infnc net;
+
 } // namespace unet
