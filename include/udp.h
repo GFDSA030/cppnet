@@ -18,22 +18,15 @@ namespace unet
         int Rport = 0;
 
     public:
+        udp_core(int Tx_, int Rx_);
         udp_core();
         ~udp_core();
-    };
-
-    class UDP : public udp_core
-    {
-    public:
-        UDP();
-        UDP(int Tx_, int Rx_);
-        ~UDP();
-
         int set_port(int Tx_, int Rx_);
         int send_data(const char *addr_, const char *buf, int len);
         int recv_data(char *buf, int len);
         int recv_data(IPaddress *addr, char *buf, int len);
     };
+
 }
 
 #endif // UDP_H
