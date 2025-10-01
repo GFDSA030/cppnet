@@ -52,7 +52,12 @@ namespace unet
             fprintf(stderr, "Error. Cannot bind socket\n");
             return error;
         }
-        listen(svScok, 25);
+        // listen(svScok, 25);
+        if (listen(svScok, 25) < 0)
+        {
+            fprintf(stderr, "Error. Cannot listen socket\n");
+            return error;
+        }
 
 #ifdef NETCPP_SSL_AVAILABLE
         if (type != SSL_c)
@@ -87,6 +92,11 @@ namespace unet
 #endif
         uint len = sizeof(addr);
         sock = accept(svScok, (struct sockaddr *)&addr, &len);
+        if (sock < 0)
+        {
+            fprintf(stderr, "Error. Cannot accept socket\n");
+            return error;
+        }
 #ifndef NETCPP_BLOCKING
         u_long val = 1;
         ioctl(sock, FIONBIO, &val);

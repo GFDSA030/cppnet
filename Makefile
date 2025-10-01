@@ -18,10 +18,9 @@ endif
 
 TARGETS2 = $(patsubst src/%.cpp, build/%.o, $(wildcard src/*.cpp))
 
-all: main.out test.out
+all: main.out test2.out
 
 main.out: build/main.o libunet.a
-test.out: build/test_main.o libunet.a
 test2.out: build/test2.o libunet.a
 
 _min.out:build/main.o libunet.a

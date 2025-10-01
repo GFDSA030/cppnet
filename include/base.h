@@ -68,7 +68,7 @@ namespace unet
         /// @param len 受信バッファ長
         /// @return 受信バイト数、エラー時は-1
         int recv_data(std::string &buf, size_t len) const noexcept;
-        /// @brief 全データ受信(ブロッキング)
+        /// @brief 全データ受信(ブロッキング) 通信終了時まで
         /// @return 受信データ、エラー時は空文字
         std::string recv_all() const noexcept;
         /// @brief ソケットクローズ

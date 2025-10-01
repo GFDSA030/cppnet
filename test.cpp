@@ -7,6 +7,7 @@
 
 namespace console
 {
+    constexpr char reset[] = "\033[0m\033[39m\033[49m";
     namespace decoration
     {
         constexpr char bold[] = "\033[1m";
@@ -147,12 +148,20 @@ int main()
     // std::cout << response << std::endl;
     std::cout << console::colors::green << response << console::colors::reset << std::endl;
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100)); // 100ミリ秒後にサーバを停止
-    server.stop();
-
     std::cout << "---- Standby ----" << std::endl;
     unet::Standby sv(8080, unet::sock_type::TCP_c);
-    sv.accept_s();
+    sv.set(8080, unet::sock_type::TCP_c);
+    sv.connect_s("localhost");
+    std::cout << console::bg_colors::blue << sv.send_data(unet::http::get_http_request_header("GET", "/", "localhost")) << console::bg_colors::reset << std::endl;
+    response = sv.recv_all();
+    std::cout << console::colors::blue << response << console::colors::reset << std::endl;
+    sv.close_s();
+    std::this_thread::sleep_for(std::chrono::milliseconds(100)); // 100ミリ秒後にサーバを停止
+    server.stop();
+    server.~Server();
+    std::cout << "Server stopped." << std::endl;
+    sv.set(8080, unet::sock_type::TCP_c);
+    std::cout << console::colors::blue << sv.accept_s() << console::reset << std::endl;
     std::string msg;
     sv.recv_data(msg, 4096);
     std::cout << msg << std::endl;
