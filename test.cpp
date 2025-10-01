@@ -62,7 +62,7 @@ void fnc(unet::net_core &nc, void *udata)
 int main()
 {
     unet::netcpp_start();
-    /*
+    std::cout << "---- getaddrinfo ----" << std::endl;
     addrinfo hints = {};
     // hints.ai_family = AF_INET;       // IPv4
     hints.ai_family = AF_UNSPEC;     // IPv4 or IPv6
@@ -124,7 +124,6 @@ int main()
     {
         std::cout << "getipaddrinfo error" << std::endl;
     }
-    */
 
     std::cout << "---- ClientTCPipV6 ----" << std::endl;
     // unet::ClientTCPipV6 client("example.com", 80);

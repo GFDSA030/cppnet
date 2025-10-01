@@ -85,27 +85,23 @@ namespace unet
         memcpy(&ret, res->ai_addr, sizeof(IPaddress));
         freeaddrinfo(res);
         ret.ss_family = res->ai_family;
-        ((struct sockaddr_in *)&ret)->sin_port = htons(port_);
-        // ((struct sockaddr_in *)ret.ai_addr)->sin_port = htons(port_);
+        if (ret.ss_family == AF_INET)
+            ((struct sockaddr_in *)&ret)->sin_port = htons(port_);
+        if (ret.ss_family == AF_INET6)
+            ((struct sockaddr_in6 *)&ret)->sin6_port = htons(port_);
         return success;
     }
     std::string ip2str(const IPaddress &addr) noexcept
     {
-        char ipstr[INET6_ADDRSTRLEN];
+        char ipstr[INET6_ADDRSTRLEN] = {};
         void *addr_ptr;
         // if (addr.ai_family == AF_INET) // IPv4
         if (addr.ss_family == AF_INET) // IPv4
         {
-            // struct sockaddr_in *ipv4 = (struct sockaddr_in *)addr.ai_addr;
-            // struct sockaddr_in *ipv4 = (struct sockaddr_in *)&addr;
-            // addr_ptr = &(ipv4->sin_addr);
             addr_ptr = &(((struct sockaddr_in *)&addr)->sin_addr);
         }
         else // IPv6
         {
-            // struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)addr.ai_addr;
-            // struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)&addr;
-            // addr_ptr = &(ipv6->sin6_addr);
             addr_ptr = &(((struct sockaddr_in6 *)&addr)->sin6_addr);
         }
         // inet_ntop(addr.ai_family, addr_ptr, ipstr, sizeof(ipstr));
