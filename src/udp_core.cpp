@@ -2,6 +2,7 @@
 #include <infnc.h>
 namespace unet
 {
+    //TODO: 汚いコードをなんとかする
     size_t udp_core::udp_no = 0;
 
     int udp_core::send_m(const IPaddress *addr, const char *buf, int len) const noexcept
