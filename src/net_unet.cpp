@@ -82,13 +82,39 @@ namespace unet
             return error;
         }
         // memcpy(&ret, res->ai_addr, sizeof(addrinfo));
-        memcpy(&ret, res->ai_addr, sizeof(IPaddress));
-        freeaddrinfo(res);
-        ret.ss_family = res->ai_family;
+        // Copy the first result's sockaddr into ret safely.
+        addrinfo *first = res;
+        // initialize ret
+        memset(&ret, 0, sizeof(IPaddress));
+        size_t copylen = 0;
+#ifdef _WIN32
+        // on Windows, ai_addrlen may not be reliable; choose by family
+        if (first->ai_family == AF_INET)
+            copylen = sizeof(struct sockaddr_in);
+        else if (first->ai_family == AF_INET6)
+            copylen = sizeof(struct sockaddr_in6);
+        else
+            copylen = sizeof(struct sockaddr_storage);
+#else
+        copylen = first->ai_addrlen;
+        if (copylen == 0 || copylen > sizeof(IPaddress))
+            copylen = sizeof(IPaddress);
+#endif
+        if (first->ai_addr != nullptr)
+            memcpy(&ret, first->ai_addr, copylen);
+
+        // set family and port based on the addrinfo entry
+        ret.ss_family = first->ai_family;
         if (ret.ss_family == AF_INET)
+        {
             ((struct sockaddr_in *)&ret)->sin_port = htons(port_);
-        if (ret.ss_family == AF_INET6)
+        }
+        else if (ret.ss_family == AF_INET6)
+        {
             ((struct sockaddr_in6 *)&ret)->sin6_port = htons(port_);
+        }
+
+        freeaddrinfo(res);
         return success;
     }
     std::string ip2str(const IPaddress &addr) noexcept
@@ -104,8 +130,8 @@ namespace unet
         {
             addr_ptr = &(((struct sockaddr_in6 *)&addr)->sin6_addr);
         }
-        // inet_ntop(addr.ai_family, addr_ptr, ipstr, sizeof(ipstr));
-        inet_ntop(((struct sockaddr_in *)&addr)->sin_family, addr_ptr, ipstr, sizeof(ipstr));
+        // use ss_family stored in sockaddr_storage
+        inet_ntop(addr.ss_family, addr_ptr, ipstr, sizeof(ipstr));
         return std::string(ipstr);
     }
 }
