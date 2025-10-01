@@ -135,30 +135,31 @@ int main()
     // std::cout << response << std::endl;
     std::cout << unet::http::extract_http_header(response) << std::endl;
     client.close_s();
-
-    std::cout << "---- ServerIPV6 ----" << std::endl;
-    unet::Server server(8080, fnc, unet::sock_type::TCP_c);
-    std::cout << "Server is running on [::]:8080" << std::endl;
-    server.listen_p(false); // 非ブロッキングでリッスン開始
-
-    client.connect_s("localhost", unet::sock_type::TCP_c, 8080);
-    client.send_data(unet::http::get_http_request_header("GET", "/", "localhost"));
-    response = client.recv_all();
-    client.close_s();
-    // std::cout << response << std::endl;
-    std::cout << console::colors::green << response << console::colors::reset << std::endl;
-
-    std::cout << "---- Standby ----" << std::endl;
     unet::Standby sv(8080, unet::sock_type::TCP_c);
-    sv.set(8080, unet::sock_type::TCP_c);
-    sv.connect_s("localhost");
-    std::cout << console::bg_colors::blue << sv.send_data(unet::http::get_http_request_header("GET", "/", "localhost")) << console::bg_colors::reset << std::endl;
-    response = sv.recv_all();
-    std::cout << console::colors::blue << response << console::colors::reset << std::endl;
-    sv.close_s();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100)); // 100ミリ秒後にサーバを停止
-    server.stop();
-    server.~Server();
+    {
+        std::cout << "---- ServerIPV6 ----" << std::endl;
+        unet::Server server(8080, fnc, unet::sock_type::TCP_c);
+        std::cout << "Server is running on [::]:8080" << std::endl;
+        server.listen_p(false); // 非ブロッキングでリッスン開始
+
+        client.connect_s("localhost", unet::sock_type::TCP_c, 8080);
+        client.send_data(unet::http::get_http_request_header("GET", "/", "localhost"));
+        response = client.recv_all();
+        client.close_s();
+        // std::cout << response << std::endl;
+        std::cout << console::colors::green << response << console::colors::reset << std::endl;
+
+        std::cout << "---- Standby ----" << std::endl;
+        sv.set(8080, unet::sock_type::TCP_c);
+        sv.connect_s("localhost");
+        std::cout << console::bg_colors::blue << sv.send_data(unet::http::get_http_request_header("GET", "/", "localhost")) << console::bg_colors::reset << std::endl;
+        response = sv.recv_all();
+        std::cout << console::colors::blue << response << console::colors::reset << std::endl;
+        sv.close_s();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // 100ミリ秒後にサーバを停止
+        server.stop();
+    }
+    // server.~Server();
     std::cout << "Server stopped." << std::endl;
     sv.set(8080, unet::sock_type::TCP_c);
     std::cout << console::colors::blue << sv.accept_s() << console::reset << std::endl;
@@ -170,6 +171,24 @@ int main()
                  "\r\nConnection: close"
                  "\r\n\r\n"
                  "Hello from Standby server");
+
+    sv.close_s();
+    std::cout << "Standby closed." << std::endl;
+
+    std::cout << "---- UDP ----" << std::endl;
+    unet::udp_core uc;
+    unet::IPaddress udp_addr;
+    uc.set_port(8081, 8080);
+    uc.send_data("127.0.0.1", "Hello via UDP", 13);
+    char udp_buf[1024];
+    int udp_bytes = uc.recv_data(udp_buf, sizeof(udp_buf) - 1);
+    if (udp_bytes > 0)
+    {
+        udp_buf[udp_bytes] = '\0';
+        std::cout << "Received UDP message: " << udp_buf << std::endl;
+    }
+
+    std::cout << "---- Finished ----" << std::endl;
 
     unet::netcpp_stop();
     return 0;
