@@ -5,11 +5,14 @@ namespace unet
 
     Standby::Standby(int port_, const sock_type type_) noexcept
     {
+        netcpp_start();
         port = port_;
         change_type(type_);
     }
     Standby::~Standby()
     {
+        close_s();
+        netcpp_stop();
     }
     int Standby::set(int port_, const sock_type type_) noexcept
     {
@@ -19,24 +22,32 @@ namespace unet
     }
     int Standby::accept_s(const char *crt, const char *pem) noexcept
     {
+        IPaddress svaddr = {};
         close_s();
 
-        if ((svScok = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+        if ((svScok = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
         {
             fprintf(stderr, "Error. Cannot make socket\n");
             return error;
         }
         const int opt = 1;
-        setsockopt(svScok, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt));
+        if (setsockopt(svScok, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt)) < 0)
+        {
+            fprintf(stderr, "setsockopt SO_REUSEADDR error\n");
+            return error;
+        }
+        int off = 0;
+        if (setsockopt(svScok, IPPROTO_IPV6, IPV6_V6ONLY,
+                       (char *)&off, sizeof(off)) < 0)
+        {
+            perror("setsockopt IPV6_V6ONLY");
+        }
 
-        ((struct sockaddr_in *)&addr)->sin_addr.s_addr = INADDR_ANY;
-        ((struct sockaddr_in *)&addr)->sin_family = AF_INET;
-        ((struct sockaddr_in *)&addr)->sin_port = htons(port);
-        // addr.sin_addr.s_addr = INADDR_ANY;
-        // addr.sin_family = AF_INET;
-        // addr.sin_port = htons(port);
+        svaddr.ss_family = AF_INET6;
+        ((struct sockaddr_in6 *)&svaddr)->sin6_addr = in6addr_any;
+        ((struct sockaddr_in6 *)&svaddr)->sin6_port = htons(port);
 
-        if (bind(svScok, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+        if (bind(svScok, (struct sockaddr *)&svaddr, sizeof(svaddr)) < 0)
         {
             fprintf(stderr, "Error. Cannot bind socket\n");
             return error;
@@ -94,23 +105,16 @@ namespace unet
             }
         }
 #endif
-
+        this_status = online;
         return success;
     }
     int Standby::connect_s(const char *addr_) noexcept
     {
         close_s();
-        getipaddr(addr_, addr);
-        type = TCP_c;
-        ((struct sockaddr_in *)&addr)->sin_family = AF_INET;
-        ((struct sockaddr_in *)&addr)->sin_addr.s_addr = ((struct sockaddr_in *)&addr)->sin_addr.s_addr;
-        ((struct sockaddr_in *)&addr)->sin_port = htons(port);
-        // addr.sin_port = htons(port);
-        // if (port == -1)
-        //     addr.sin_port = htons(port);
-        // addr.sin_family = AF_INET;
+        getipaddrinfo(addr_, type, addr, type);
+        ((struct sockaddr_in6 *)&addr)->sin6_port = htons(port);
 
-        sock = socket(AF_INET, SOCK_STREAM, 0);
+        sock = socket(addr.ss_family, SOCK_STREAM, 0);
 #ifndef NETCPP_BLOCKING
         u_long val = 1;
         ioctl(sock, FIONBIO, &val);
@@ -137,6 +141,10 @@ namespace unet
 #endif // NETCPP_SSL_AVAILABLE
         this_status = online;
         return success;
+    }
+    IPaddress Standby::get_addr() const noexcept
+    {
+        return addr;
     }
     int Standby::close_s() noexcept
     {

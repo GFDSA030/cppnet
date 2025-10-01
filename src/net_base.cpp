@@ -157,7 +157,7 @@ namespace unet
         std::string result;
         // receive all
         int ret = 0;
-        while ((ret = recv_data(buffer, BUF_SIZE - 1)) > 0)
+        while ((ret = recv_data(buffer, BUF_SIZE)) > 0)
         {
             // append exact number of bytes received (may contain nulls)
             result.append(buffer, ret);

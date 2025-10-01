@@ -13,4 +13,6 @@
 
 #include <udp.h>
 
+#include <http.h>
+
 #endif // UNET

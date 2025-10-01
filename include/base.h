@@ -86,7 +86,7 @@ namespace unet
         IPaddress remote() const noexcept;
     };
 
-    class Standby : net_base // どっちにもなる //TODO:
+    class Standby : public net_base // どっちにもなる //TODO:
     {
     private:
         int port = 0;
@@ -97,6 +97,7 @@ namespace unet
         ~Standby();
         int set(int port_, const sock_type type_ = TCP_c) noexcept;
         int accept_s(const char *crt = "", const char *pem = "") noexcept;
+        IPaddress get_addr() const noexcept;
         int connect_s(const char *addr_) noexcept;
         int close_s() noexcept;
         sock_type change_type(const sock_type type_) noexcept;
