@@ -5,7 +5,7 @@ namespace unet
 {
 #ifdef NETCPP_SSL_AVAILABLE
 
-#ifdef __WIN32
+#if defined(_WIN32) || defined(__MINGW32__) || defined(_MSC_VER)
 
     WSADATA data;
     void netinit() noexcept
@@ -22,7 +22,7 @@ namespace unet
         netcpp_setstatus(offline);
     }
 
-#else //__WIN32
+#else // not Windows
 
     void netinit() noexcept
     {
@@ -36,11 +36,11 @@ namespace unet
         netcpp_setstatus(offline);
     }
 
-#endif //__WIN32
+#endif // windows check
 
 #else // NETCPP_SSL_AVAILABLE
 
-#ifdef __WIN32
+#if defined(_WIN32) || defined(__MINGW32__) || defined(_MSC_VER)
 
     WSADATA data;
     void netinit() noexcept
@@ -54,7 +54,7 @@ namespace unet
         netcpp_setstatus(offline);
     }
 
-#else //__WIN32
+#else // not Windows
 
     void netinit() noexcept
     {
@@ -65,7 +65,7 @@ namespace unet
         netcpp_setstatus(offline);
     }
 
-#endif //__WIN32
+#endif // windows check
 
 #endif // NETCPP_SSL_AVAILABLE
 

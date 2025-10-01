@@ -8,10 +8,10 @@ namespace unet
     {
         sock = socket;
         addr = cli;
+        ssl = ssl_;
         type = type_;
         set_type(type_);
         this_status = online;
-        ssl = ssl_;
     }
 
     net_core::~net_core()

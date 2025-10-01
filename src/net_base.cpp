@@ -152,16 +152,71 @@ namespace unet
     }
     std::string net_base::recv_all() const noexcept
     {
-        char buffer[BUF_SIZE] = {0};
-        memset(buffer, 0, BUF_SIZE);
+        char buffer[BUF_SIZE];
         std::string result;
-        // receive all
-        int ret = 0;
-        while ((ret = recv_data(buffer, BUF_SIZE)) > 0)
+
+        if (this_status == offline)
+            return result;
+
+        // Use select to wait for readability with a short timeout so that
+        // non-blocking sockets don't cause a busy loop or premature exit.
+#if defined(_WIN32) || defined(__MINGW32__)
+        SOCKET s = (SOCKET)sock;
+#else
+        int s = sock;
+#endif
+
+        for (;;)
         {
-            // append exact number of bytes received (may contain nulls)
-            result.append(buffer, ret);
-            memset(buffer, 0, BUF_SIZE);
+            fd_set readfds;
+            FD_ZERO(&readfds);
+            FD_SET(s, &readfds);
+            struct timeval tv;
+            tv.tv_sec = 0;
+            tv.tv_usec = 200 * 1000; // 200 ms
+
+            int sel = select(s + 1, &readfds, NULL, NULL, &tv);
+            if (sel < 0)
+            {
+                // select error
+                break;
+            }
+            if (sel == 0)
+            {
+                // timeout with no data -> stop reading
+                break;
+            }
+
+            // socket is readable
+            int ret = recv_data(buffer, BUF_SIZE);
+            if (ret > 0)
+            {
+                result.append(buffer, ret);
+                // continue to try to read more while data may be available
+                continue;
+            }
+            else if (ret == 0)
+            {
+                // connection closed by peer
+                break;
+            }
+            else
+            {
+                // ret < 0, error
+#ifdef NETCPP_SSL_AVAILABLE
+                if (type == SSL_c && ssl != nullptr)
+                {
+                    int ssl_err = SSL_get_error(ssl, ret);
+                    if (ssl_err == SSL_ERROR_WANT_READ || ssl_err == SSL_ERROR_WANT_WRITE)
+                    {
+                        // no data now, wait again
+                        continue;
+                    }
+                    // otherwise treat as fatal
+                }
+#endif
+                break;
+            }
         }
         return result;
     }

@@ -37,7 +37,13 @@ namespace unet
             fprintf(stderr, "Error. Cannot bind socket\n");
             return;
         }
-        listen(sock, 25);
+        if (listen(sock, 25) < 0)
+        {
+            perror("Error. Cannot listen socket");
+            close(sock);
+            sock = 0;
+            return;
+        }
 
 #ifdef NETCPP_SSL_AVAILABLE
         if (type != SSL_c)
@@ -76,11 +82,20 @@ namespace unet
     int Server::listen_m() noexcept
     {
         IPaddress client;
-        uint len = sizeof(client);
+        socklen_t len = sizeof(client);
         int sockcli;
         while (cont == 1)
         {
+#ifdef __MINGW32__
+            sockcli = accept(sock, (struct sockaddr *)&client, (int *)&len);
+#else
             sockcli = accept(sock, (struct sockaddr *)&client, &len);
+#endif
+            if (sockcli < 0)
+            {
+                perror("accept() failed");
+                continue;
+            }
 #ifndef NETCPP_BLOCKING
             u_long val = 1;
             ioctl(sockcli, FIONBIO, &val);
@@ -96,6 +111,9 @@ namespace unet
                 {
                     perror("Error: SSL_accept()");
                     ERR_print_errors_fp(stderr);
+                    SSL_free(ssl);
+                    ssl = nullptr;
+                    close(sockcli);
                     continue;
                 }
             }

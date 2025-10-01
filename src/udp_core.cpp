@@ -2,13 +2,26 @@
 #include <infnc.h>
 namespace unet
 {
-    //TODO: 汚いコードをなんとかする
+    // TODO: 汚いコードをなんとかする
     size_t udp_core::udp_no = 0;
 
     int udp_core::send_m(const IPaddress *addr, const char *buf, int len) const noexcept
     {
         Tsock = socket(addr->ss_family, SOCK_DGRAM, 0);
-        int ret = sendto(Tsock, buf, len, 0, (struct sockaddr *)addr, sizeof(*addr));
+        if (Tsock < 0)
+        {
+            perror("udp send socket()");
+            return error;
+        }
+        socklen_t addrlen = 0;
+        if (addr->ss_family == AF_INET)
+            addrlen = sizeof(struct sockaddr_in);
+        else if (addr->ss_family == AF_INET6)
+            addrlen = sizeof(struct sockaddr_in6);
+        else
+            addrlen = sizeof(struct sockaddr_storage);
+
+        int ret = sendto(Tsock, buf, len, 0, (struct sockaddr *)addr, addrlen);
         close(Tsock);
         Tsock = 0;
         return ret;
@@ -31,7 +44,8 @@ namespace unet
         Rsock = socket(AF_INET6, SOCK_DGRAM, 0);
         if (Rsock < 0)
         {
-            fprintf(stderr, "Error. Cannot make socket\n");
+            perror("Error. Cannot make Rsock");
+            Rsock = 0;
             return;
         }
         int off = 0;
@@ -41,10 +55,16 @@ namespace unet
             perror("setsockopt IPV6_V6ONLY");
         }
         IPaddress addr_ = {};
-        ((struct sockaddr_in6 *)&addr_)->sin6_family = AF_INET6;
+        addr_.ss_family = AF_INET6;
         ((struct sockaddr_in6 *)&addr_)->sin6_port = htons(Rport);
         ((struct sockaddr_in6 *)&addr_)->sin6_addr = in6addr_any;
-        bind(Rsock, (struct sockaddr *)&addr_, sizeof(addr_));
+        if (bind(Rsock, (struct sockaddr *)&addr_, sizeof(addr_)) < 0)
+        {
+            perror("bind Rsock failed");
+            close(Rsock);
+            Rsock = 0;
+            return;
+        }
 
 #ifndef NETCPP_BLOCKING
         u_long val = 1;
@@ -58,7 +78,8 @@ namespace unet
         Rsock = socket(AF_INET6, SOCK_DGRAM, 0);
         if (Rsock < 0)
         {
-            fprintf(stderr, "Error. Cannot make socket\n");
+            perror("Error. Cannot make Rsock");
+            Rsock = 0;
             return;
         }
         int off = 0;
@@ -98,17 +119,21 @@ namespace unet
         Tport = Tx_;
         Rport = Rx_;
         IPaddress addr_ = {};
-        ((struct sockaddr_in6 *)&addr_)->sin6_family = AF_INET6;
+        addr_.ss_family = AF_INET6;
         ((struct sockaddr_in6 *)&addr_)->sin6_port = htons(Rport);
         ((struct sockaddr_in6 *)&addr_)->sin6_addr = in6addr_any;
-        bind(Rsock, (struct sockaddr *)&addr_, sizeof(addr_));
+        if (bind(Rsock, (struct sockaddr *)&addr_, sizeof(addr_)) < 0)
+        {
+            perror("bind Rsock failed in set_port");
+            return error;
+        }
         return success;
     }
 
     int udp_core::send_data(const char *addr, const char *buf, int len)
     {
         IPaddress addr_in = {};
-        getipaddrinfo(addr, Tport, addr_in);
+        getipaddrinfo(addr, Tport, addr_in, UDP_c);
         return send_m(&addr_in, buf, len);
     }
 

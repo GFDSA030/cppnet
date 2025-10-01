@@ -68,13 +68,15 @@ namespace unet
     {
         addrinfo hints = {}, *res;
         hints.ai_family = AF_UNSPEC; // IPv4 or IPv6
-        hints.ai_socktype = type_ == sock_type::TCP_c ? SOCK_STREAM : (type_ == sock_type::UDP_c ? SOCK_DGRAM : NULL);
-        hints.ai_flags = AI_PASSIVE; // For wildcard IP address
+        hints.ai_socktype = (type_ == sock_type::TCP_c || type_ == sock_type::SSL_c) ? SOCK_STREAM : (type_ == sock_type::UDP_c ? SOCK_DGRAM : 0);
+        hints.ai_flags = 0; // do not use AI_PASSIVE for name resolution for clients
         int err = 0;
-        // if ((err = getaddrinfo(addr_, type_ == TCP_c ? "http" : "https", &hints, &res)) != 0)
+        std::string service = std::to_string(port_);
+        // Resolve host and service (port) together so sockaddr has port set
+        // if ((err = getaddrinfo(addr_, service.c_str(), &hints, &res)) != 0)
         if ((err = getaddrinfo(addr_, NULL, &hints, &res)) != 0)
         {
-            printf("error %d\n", err);
+            fprintf(stderr, "getaddrinfo error: %s\n", gai_strerror(err));
             return error;
         }
         if (res == nullptr)
@@ -103,7 +105,7 @@ namespace unet
         if (first->ai_addr != nullptr)
             memcpy(&ret, first->ai_addr, copylen);
 
-        // set family and port based on the addrinfo entry
+        // family and port are already set in the copied sockaddr by getaddrinfo
         ret.ss_family = first->ai_family;
         if (ret.ss_family == AF_INET)
         {
