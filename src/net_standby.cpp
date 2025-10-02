@@ -31,88 +31,34 @@ namespace unet
         if (svScok < 0)
         {
             perror("Error. Cannot create IPv6 socket");
-            // try IPv4 as fallback
-            svScok = socket(AF_INET, SOCK_STREAM, 0);
-            if (svScok < 0)
-            {
-                perror("Error. Cannot create IPv4 socket either");
-                return error;
-            }
-            // configure IPv4 socket
-            if (setsockopt(svScok, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt)) < 0)
-            {
-                perror("setsockopt SO_REUSEADDR error (ipv4)");
-                close(svScok);
-                svScok = 0;
-                return error;
-            }
-            // bind IPv4 ANY
-            struct sockaddr_in sv4 = {};
-            sv4.sin_family = AF_INET;
-            sv4.sin_addr.s_addr = INADDR_ANY;
-            sv4.sin_port = htons(port);
-            if (bind(svScok, (struct sockaddr *)&sv4, sizeof(sv4)) < 0)
-            {
-                perror("Error. Cannot bind IPv4 socket");
-                close(svScok);
-                svScok = 0;
-                return error;
-            }
         }
-        else
+        // configure IPv6 socket
+        if (setsockopt(svScok, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt)) < 0)
         {
-            // configure IPv6 socket
-            if (setsockopt(svScok, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt)) < 0)
-            {
-                perror("setsockopt SO_REUSEADDR error (ipv6)");
-                close(svScok);
-                svScok = 0;
-                return error;
-            }
-            int off = 1; // set IPv6-only to avoid conflicts with IPv4 binds
-            if (setsockopt(svScok, IPPROTO_IPV6, IPV6_V6ONLY,
-                           (char *)&off, sizeof(off)) < 0)
-            {
-                perror("setsockopt IPV6_V6ONLY");
-                // non-fatal, continue
-            }
-
-            svaddr.ss_family = AF_INET6;
-            ((struct sockaddr_in6 *)&svaddr)->sin6_addr = in6addr_any;
-            ((struct sockaddr_in6 *)&svaddr)->sin6_port = htons(port);
-
-            if (bind(svScok, (struct sockaddr *)&svaddr, sizeof(struct sockaddr_in6)) < 0)
-            {
-                perror("Error. Cannot bind IPv6 socket");
-                close(svScok);
-                svScok = 0;
-                // fallback: try IPv4
-                svScok = socket(AF_INET, SOCK_STREAM, 0);
-                if (svScok < 0)
-                {
-                    perror("Error. Cannot create IPv4 socket (fallback)");
-                    return error;
-                }
-                if (setsockopt(svScok, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt)) < 0)
-                {
-                    perror("setsockopt SO_REUSEADDR error (ipv4 fallback)");
-                    close(svScok);
-                    svScok = 0;
-                    return error;
-                }
-                struct sockaddr_in sv4 = {};
-                sv4.sin_family = AF_INET;
-                sv4.sin_addr.s_addr = INADDR_ANY;
-                sv4.sin_port = htons(port);
-                if (bind(svScok, (struct sockaddr *)&sv4, sizeof(sv4)) < 0)
-                {
-                    perror("Error. Cannot bind IPv4 socket (fallback)");
-                    close(svScok);
-                    svScok = 0;
-                    return error;
-                }
-            }
+            perror("setsockopt SO_REUSEADDR error (ipv6)");
+            close(svScok);
+            svScok = 0;
+            return error;
         }
+        int off = 1; // set IPv6-only to avoid conflicts with IPv4 binds
+        if (setsockopt(svScok, IPPROTO_IPV6, IPV6_V6ONLY,
+                       (char *)&off, sizeof(off)) < 0)
+        {
+            perror("setsockopt IPV6_V6ONLY");
+            // non-fatal, continue
+        }
+
+        svaddr.ss_family = AF_INET6;
+        ((struct sockaddr_in6 *)&svaddr)->sin6_addr = in6addr_any;
+        ((struct sockaddr_in6 *)&svaddr)->sin6_port = htons(port);
+
+        if (bind(svScok, (struct sockaddr *)&svaddr, sizeof(struct sockaddr_in6)) < 0)
+        {
+            perror("Error. Cannot bind IPv6 socket");
+            close(svScok);
+            svScok = 0;
+        }
+
         // listen(svScok, 25);
         if (listen(svScok, 25) < 0)
         {

@@ -24,6 +24,18 @@ namespace unet
     int server_base::stop() noexcept
     {
         cont = 0;
+#ifdef NETCPP_SSL_AVAILABLE
+        if (ctx != nullptr)
+        {
+            SSL_CTX_free(ctx);
+            ctx = nullptr;
+        }
+#endif
+        if (sock > 0)
+        {
+            close(sock);
+            sock = 0;
+        }
         return success;
     }
     int server_base::setUserData(void *data) noexcept
