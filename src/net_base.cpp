@@ -93,6 +93,9 @@ namespace unet
         base_no++;
         base_len++;
         this_no = base_no;
+        send_m = std::bind(&net_base::send_tcp, this, std::placeholders::_1, std::placeholders::_2);
+        recv_m = std::bind(&net_base::recv_tcp, this, std::placeholders::_1, std::placeholders::_2);
+        close_m = std::bind(&net_base::close_tcp, this);
     }
     net_base::~net_base()
     {

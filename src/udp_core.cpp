@@ -54,7 +54,7 @@ namespace unet
         {
             perror("setsockopt IPV6_V6ONLY");
         }
-        IPaddress addr_ = {};
+        IPaddress addr_ = {0};
         addr_.ss_family = AF_INET6;
         ((struct sockaddr_in6 *)&addr_)->sin6_port = htons(Rport);
         ((struct sockaddr_in6 *)&addr_)->sin6_addr = in6addr_any;
@@ -118,7 +118,7 @@ namespace unet
         }
         Tport = Tx_;
         Rport = Rx_;
-        IPaddress addr_ = {};
+        IPaddress addr_ = {0};
         addr_.ss_family = AF_INET6;
         ((struct sockaddr_in6 *)&addr_)->sin6_port = htons(Rport);
         ((struct sockaddr_in6 *)&addr_)->sin6_addr = in6addr_any;
@@ -132,7 +132,7 @@ namespace unet
 
     int udp_core::send_data(const char *addr, const char *buf, int len)
     {
-        IPaddress addr_in = {};
+        IPaddress addr_in = {0};
         getipaddrinfo(addr, Tport, addr_in, UDP_c);
         return send_m(&addr_in, buf, len);
     }

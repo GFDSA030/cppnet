@@ -66,7 +66,7 @@ namespace unet
 
     int getipaddrinfo(const char *addr_, int port_, IPaddress &ret, sock_type type_) noexcept
     {
-        addrinfo hints = {}, *res;
+        addrinfo hints = {0}, *res;
         hints.ai_family = AF_UNSPEC; // IPv4 or IPv6
         hints.ai_socktype = (type_ == sock_type::TCP_c || type_ == sock_type::SSL_c) ? SOCK_STREAM : (type_ == sock_type::UDP_c ? SOCK_DGRAM : 0);
         hints.ai_flags = 0; // do not use AI_PASSIVE for name resolution for clients
@@ -121,7 +121,7 @@ namespace unet
     }
     std::string ip2str(const IPaddress &addr) noexcept
     {
-        char ipstr[INET6_ADDRSTRLEN] = {};
+        char ipstr[INET6_ADDRSTRLEN] = {0};
         void *addr_ptr;
         // if (addr.ai_family == AF_INET) // IPv4
         if (addr.ss_family == AF_INET) // IPv4

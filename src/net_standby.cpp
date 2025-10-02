@@ -22,10 +22,9 @@ namespace unet
     }
     int Standby::accept_s(const char *crt, const char *pem) noexcept
     {
-        IPaddress svaddr = {};
+        IPaddress svaddr = {0};
         close_s();
 
-        const int opt = 1;
         // Try IPv6 socket first
         svScok = socket(AF_INET6, SOCK_STREAM, 0);
         if (svScok < 0)
@@ -33,6 +32,7 @@ namespace unet
             perror("Error. Cannot create IPv6 socket");
         }
         // configure IPv6 socket
+        const int opt = 1;
         if (setsockopt(svScok, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt)) < 0)
         {
             perror("setsockopt SO_REUSEADDR error (ipv6)");
@@ -40,7 +40,7 @@ namespace unet
             svScok = 0;
             return error;
         }
-        int off = 1; // set IPv6-only to avoid conflicts with IPv4 binds
+        int off = 0; // set IPv6-only to avoid conflicts with IPv4 binds
         if (setsockopt(svScok, IPPROTO_IPV6, IPV6_V6ONLY,
                        (char *)&off, sizeof(off)) < 0)
         {
@@ -57,6 +57,7 @@ namespace unet
             perror("Error. Cannot bind IPv6 socket");
             close(svScok);
             svScok = 0;
+            return error;
         }
 
         // listen(svScok, 25);
@@ -118,7 +119,6 @@ namespace unet
         u_long val = 1;
         ioctl(sock, FIONBIO, &val);
 #endif
-        SSL *ssl = nullptr;
 #ifdef NETCPP_SSL_AVAILABLE
         if (type == SSL_c)
         {
@@ -132,8 +132,6 @@ namespace unet
                 ssl = nullptr;
                 return error;
             }
-            // store accepted ssl into object for later send/recv
-            this->ssl = ssl;
         }
 #endif
         this_status = online;
@@ -190,7 +188,7 @@ namespace unet
     }
     sock_type Standby::change_type(const sock_type type_) noexcept
     {
-        if (type < 0 || type_ == unknown)
+        if (type_ < 0 || type_ == unknown)
         {
             fprintf(stderr, "type is unknown\n");
             return type;
