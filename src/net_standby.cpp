@@ -52,7 +52,7 @@ namespace unet
         ((struct sockaddr_in6 *)&svaddr)->sin6_addr = in6addr_any;
         ((struct sockaddr_in6 *)&svaddr)->sin6_port = htons(port);
 
-        if (bind(svScok, (struct sockaddr *)&svaddr, sizeof(struct sockaddr_in6)) < 0)
+        if (bind(svScok, (struct sockaddr *)&svaddr, sizeof(svaddr)) < 0)
         {
             perror("Error. Cannot bind IPv6 socket");
             close(svScok);
@@ -108,7 +108,12 @@ namespace unet
         }
 #endif
         socklen_t len = sizeof(addr);
+#ifdef __MINGW32__
+        sock = accept(svScok, (struct sockaddr *)&addr, (int *)&len);
+#else
         sock = accept(svScok, (struct sockaddr *)&addr, &len);
+#endif
+        DEBUG_PRINT
         if (sock < 0)
         {
             perror("Error. Cannot accept socket");
@@ -123,6 +128,10 @@ namespace unet
         if (type == SSL_c)
         {
             ssl = SSL_new(ctx);
+            if (!ssl)
+            {
+                perror("SSL_new");
+            }
             SSL_set_fd(ssl, sock);
             if (!SSL_accept(ssl))
             {
