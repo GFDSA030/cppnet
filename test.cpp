@@ -209,6 +209,30 @@ int main()
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100ミリ秒
 
+    { // Standby Client
+        std::cout << "---- Standby Client ----" << std::endl;
+        unet::Standby sv(80, unet::sock_type::TCP_c);
+        sv.set(80, unet::sock_type::TCP_c);
+        sv.connect_s("example.com");
+        sv.send_data(unet::http::get_http_request_header("GET", "/", "example.com"));
+        std::string response = sv.recv_all();
+        sv.close_s();
+        std::cout << console::colors::blue << response << console::colors::reset << std::endl;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100ミリ秒
+
+    { // StandbySSL Client
+        std::cout << "---- StandbySSL Client ----" << std::endl;
+        unet::Standby sv(443, unet::sock_type::SSL_c);
+        sv.set(443, unet::sock_type::SSL_c);
+        sv.connect_s("example.com");
+        sv.send_data(unet::http::get_http_request_header("GET", "/", "example.com"));
+        std::string response = sv.recv_all();
+        sv.close_s();
+        std::cout << console::colors::blue << response << console::colors::reset << std::endl;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100ミリ秒
+
     { // Standby
         std::cout << "---- Standby ----" << std::endl;
         std::thread th(server_thread, unet::sock_type::TCP_c);
