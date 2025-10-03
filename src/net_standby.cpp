@@ -24,43 +24,35 @@ namespace unet
     {
         IPaddress svaddr = {0};
         close_s();
-
-        // Try IPv6 socket first
-        svScok = socket(AF_INET6, SOCK_STREAM, 0);
-        if (svScok < 0)
-        {
-            perror("Error. Cannot create IPv6 socket");
-        }
-        // configure IPv6 socket
-        const int opt = 1;
-        if (setsockopt(svScok, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt)) < 0)
-        {
-            perror("setsockopt SO_REUSEADDR error (ipv6)");
-            close(svScok);
-            svScok = 0;
-            return error;
-        }
-        int off = 0; // set IPv6-only to avoid conflicts with IPv4 binds
-        if (setsockopt(svScok, IPPROTO_IPV6, IPV6_V6ONLY,
-                       (char *)&off, sizeof(off)) < 0)
-        {
-            perror("setsockopt IPV6_V6ONLY");
-            // non-fatal, continue
-        }
-
         svaddr.ss_family = AF_INET6;
         ((struct sockaddr_in6 *)&svaddr)->sin6_addr = in6addr_any;
         ((struct sockaddr_in6 *)&svaddr)->sin6_port = htons(port);
 
-        if (bind(svScok, (struct sockaddr *)&svaddr, sizeof(svaddr)) < 0)
+        if ((svScok = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
         {
-            perror("Error. Cannot bind IPv6 socket");
-            close(svScok);
-            svScok = 0;
+            fprintf(stderr, "Error. Cannot make socket\n");
             return error;
         }
+        const int opt = 1;
+        if (setsockopt(svScok, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt)) < 0)
+        {
+            fprintf(stderr, "setsockopt SO_REUSEADDR error\n");
+            close(svScok);
+            return error;
+        }
+        int off = 0;
+        if (setsockopt(svScok, IPPROTO_IPV6, IPV6_V6ONLY,
+                       (char *)&off, sizeof(off)) < 0)
+        {
+            perror("setsockopt IPV6_V6ONLY");
+        }
 
-        // listen(svScok, 25);
+        if (bind(svScok, (struct sockaddr *)&svaddr, sizeof(svaddr)) < 0)
+        {
+            fprintf(stderr, "Error. Cannot bind socket\n");
+            close(svScok);
+            return error;
+        }
         if (listen(svScok, 25) < 0)
         {
             perror("Error. Cannot listen socket");
@@ -109,6 +101,7 @@ namespace unet
 #endif
         socklen_t len = sizeof(addr);
 #ifdef __MINGW32__
+        DEBUG_PRINT
         sock = accept(svScok, (struct sockaddr *)&addr, (int *)&len);
 #else
         sock = accept(svScok, (struct sockaddr *)&addr, &len);
