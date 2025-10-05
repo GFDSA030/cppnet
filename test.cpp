@@ -81,20 +81,20 @@ void server_thread(unet::sock_type type)
     sv.close_s();
     std::cout << "Standby stopped  type:" << type << std::endl;
 }
-int udp_thread()
+void udp_thread()
 {
     unet::udp_core uc;
     uc.set_port(8080, 8081);
-    char udp_buf[1024];
+    char udp_buf[1024] = {0};
     unet::IPaddress udp_addr;
     int ret = uc.recv_data(&udp_addr, udp_buf, 1024);
-    if (ret > 0)
-    {
-        udp_buf[ret] = '\0';
-        std::cout << "from " << unet::ip2str(udp_addr) << std::endl;
-        std::cout << "Received UDP message: " << udp_buf << std::endl;
-    }
-    return 0;
+    // if (ret > 0)
+    // {
+    std::cout << console::colors::masenda
+              << "from " << unet::ip2str(udp_addr) << "\nReceived UDP message: " << udp_buf
+              << console::colors::reset << std::endl;
+    // }
+    uc.send_data(unet::ip2str(udp_addr).c_str(), udp_buf, sizeof(udp_buf));
 }
 int main()
 {
@@ -231,8 +231,24 @@ int main()
         sv.close_s();
         std::cout << console::colors::blue << response << console::colors::reset << std::endl;
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100ミリ秒
 
+    std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100ミリ秒
+    {                                                            // UDP
+        std::cout << "---- UDP ----" << std::endl;
+        std::thread th(udp_thread);
+        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100
+        unet::udp_core uc;
+        uc.set_port(8081, 8080);
+        uc.send_data("::1", "Hello via UDP", 13);
+        char udp_buf[1024] = {0};
+        int udp_bytes = uc.recv_data(udp_buf, sizeof(udp_buf) - 1);
+        if (udp_bytes > 0)
+        {
+            udp_buf[udp_bytes] = '\0';
+            std::cout << "Received UDP message: " << udp_buf << std::endl;
+        }
+        th.join();
+    }
     { // Standby
         std::cout << "---- Standby ----" << std::endl;
         std::thread th(server_thread, unet::sock_type::TCP_c);
@@ -263,22 +279,6 @@ int main()
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100ミリ秒
 
-    { // UDP
-        std::cout << "---- UDP ----" << std::endl;
-        std::thread th(udp_thread);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100
-        unet::udp_core uc;
-        uc.set_port(8081, 8080);
-        uc.send_data("UDP Client", "Hello via UDP", 13);
-        char udp_buf[1024];
-        int udp_bytes = uc.recv_data(udp_buf, sizeof(udp_buf) - 1);
-        if (udp_bytes > 0)
-        {
-            udp_buf[udp_bytes] = '\0';
-            std::cout << "Received UDP message: " << udp_buf << std::endl;
-        }
-        th.join();
-    }
     std::cout << "---- Finished ----" << std::endl;
 
     unet::netcpp_stop();
