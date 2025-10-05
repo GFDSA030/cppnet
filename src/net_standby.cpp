@@ -101,12 +101,12 @@ namespace unet
 #endif
         socklen_t len = sizeof(addr);
 #ifdef __MINGW32__
-        DEBUG_PRINT
+        DEBUG_PRINT();
         sock = accept(svScok, (struct sockaddr *)&addr, (int *)&len);
 #else
         sock = accept(svScok, (struct sockaddr *)&addr, &len);
 #endif
-        DEBUG_PRINT
+        DEBUG_PRINT();
         if (sock < 0)
         {
             perror("Error. Cannot accept socket");

@@ -75,11 +75,12 @@ namespace unet
 #include <inttypes.h>
 #include <stdio.h>
 
-static volatile unsigned long long testno = 0;
-
-//[[deprecated("DEBUG_PRINT is used! This will print debug information.")]]
-#define DEBUG_PRINT printf("file:%s  line:%d  no:%llu  \n", __FILE__, __LINE__, testno++);
-
+[[deprecated("DEBUG_PRINT is used! This will print debug information.")]]
+static inline void DEBUG_PRINT()
+{
+    static uint32_t testno = 0;
+    printf("file:%s  line:%d  no:%u  \n", __FILE__, __LINE__, testno++);
+}
 namespace unet
 {
     typedef sockaddr_storage IPaddress;
