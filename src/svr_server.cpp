@@ -16,13 +16,13 @@ namespace unet
 
         if ((sock = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
         {
-            fprintf(stderr, "Error. Cannot make socket\n");
+            perror("Error. Cannot make socket");
             return;
         }
         const int opt = 1;
         if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt)) < 0)
         {
-            fprintf(stderr, "setsockopt SO_REUSEADDR error\n");
+            perror("setsockopt SO_REUSEADDR error");
             return;
         }
         int off = 0;
@@ -34,7 +34,7 @@ namespace unet
 
         if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
         {
-            fprintf(stderr, "Error. Cannot bind socket\n");
+            perror("Error. Cannot bind socket");
             return;
         }
         if (listen(sock, 25) < 0)

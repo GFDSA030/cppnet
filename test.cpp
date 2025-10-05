@@ -99,6 +99,9 @@ void udp_thread()
 int main()
 {
     unet::netcpp_start();
+    // {
+    //     server_thread(unet::sock_type::TCP_c);
+    // }
     { // getaddrinfo
         std::cout << "---- getaddrinfo ----" << std::endl;
         addrinfo hints = {};
