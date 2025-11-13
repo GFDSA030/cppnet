@@ -76,11 +76,8 @@ namespace unet
 #include <stdio.h>
 
 [[deprecated("DEBUG_PRINT is used! This will print debug information.")]]
-static inline void DEBUG_PRINT()
-{
-    static uint32_t testno = 0;
-    printf("file:%s  line:%d  no:%u  \n", __FILE__, __LINE__, testno++);
-}
+void DEBUG_PRINT();
+
 namespace unet
 {
     typedef sockaddr_storage IPaddress;

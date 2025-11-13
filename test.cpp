@@ -7,46 +7,47 @@
 
 namespace console
 {
-    constexpr char reset[] = "\033[0m\033[39m\033[49m";
+
+    [[maybe_unused]] static const char reset[] = "\033[0m\033[39m\033[49m";
     namespace decoration
     {
-        constexpr char bold[] = "\033[1m";
-        constexpr char underline[] = "\033[4m";
-        constexpr char blink[] = "\033[5m";
-        constexpr char reversed[] = "\033[7m";
-        constexpr char reset[] = "\033[0m";
+        [[maybe_unused]] static const char bold[] = "\033[1m";
+        [[maybe_unused]] static const char underline[] = "\033[4m";
+        [[maybe_unused]] static const char blink[] = "\033[5m";
+        [[maybe_unused]] static const char reversed[] = "\033[7m";
+        [[maybe_unused]] static const char reset[] = "\033[0m";
     }
     namespace colors
     {
-        constexpr char black[] = "\033[30m";
-        constexpr char red[] = "\033[31m";
-        constexpr char green[] = "\033[32m";
-        constexpr char yellow[] = "\033[33m";
-        constexpr char blue[] = "\033[34m";
-        constexpr char masenda[] = "\033[35m";
-        constexpr char sian[] = "\033[36m";
-        constexpr char white[] = "\033[37m";
-        constexpr char reset[] = "\033[39m";
+        [[maybe_unused]] static const char black[] = "\033[30m";
+        [[maybe_unused]] static const char red[] = "\033[31m";
+        [[maybe_unused]] static const char green[] = "\033[32m";
+        [[maybe_unused]] static const char yellow[] = "\033[33m";
+        [[maybe_unused]] static const char blue[] = "\033[34m";
+        [[maybe_unused]] static const char masenda[] = "\033[35m";
+        [[maybe_unused]] static const char sian[] = "\033[36m";
+        [[maybe_unused]] static const char white[] = "\033[37m";
+        [[maybe_unused]] static const char reset[] = "\033[39m";
     }
     namespace bg_colors
     {
-        constexpr char black[] = "\033[40m";
-        constexpr char red[] = "\033[41m";
-        constexpr char green[] = "\033[42m";
-        constexpr char yellow[] = "\033[43m";
-        constexpr char blue[] = "\033[44m";
-        constexpr char masenda[] = "\033[45m";
-        constexpr char sian[] = "\033[46m";
-        constexpr char gray[] = "\033[47m";
-        constexpr char reset[] = "\033[49m";
+        [[maybe_unused]] static const char black[] = "\033[40m";
+        [[maybe_unused]] static const char red[] = "\033[41m";
+        [[maybe_unused]] static const char green[] = "\033[42m";
+        [[maybe_unused]] static const char yellow[] = "\033[43m";
+        [[maybe_unused]] static const char blue[] = "\033[44m";
+        [[maybe_unused]] static const char masenda[] = "\033[45m";
+        [[maybe_unused]] static const char sian[] = "\033[46m";
+        [[maybe_unused]] static const char gray[] = "\033[47m";
+        [[maybe_unused]] static const char reset[] = "\033[49m";
     }
-}
+} // namespace hds::console
 
 void fnc(unet::net_core &nc, void *udata)
 {
     // std::string request = nc.recv_all();
     char buffer[4096];
-    int bytes_received = nc.recv_data(buffer, sizeof(buffer) - 1);
+    [[maybe_unused]] int bytes_received = nc.recv_data(buffer, sizeof(buffer) - 1);
     std::cout << console::colors::red << "from " << unet::ip2str(nc.remote())
               << "\nReceived request:\n"
               << buffer << console::colors::reset
@@ -87,7 +88,7 @@ void udp_thread()
     uc.set_port(8080, 8081);
     char udp_buf[1024] = {0};
     unet::IPaddress udp_addr;
-    int ret = uc.recv_data(&udp_addr, udp_buf, 1024);
+    uc.recv_data(&udp_addr, udp_buf, 1024);
     // if (ret > 0)
     // {
     std::cout << console::colors::masenda

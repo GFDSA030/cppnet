@@ -98,7 +98,7 @@ namespace unet
         u_long val = 1;
         ioctl(sock, FIONBIO, &val);
 #endif // NETCPP_BLOCKING
-        if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) == SOCKET_ERROR)
+        if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) != 0)
         {
             perror("connect() failed");
             close(sock);

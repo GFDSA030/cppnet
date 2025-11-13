@@ -1,6 +1,12 @@
 #include <infnc.h>
 #include <unordered_map>
 
+void DEBUG_PRINT()
+{
+    static uint32_t testno = 0;
+    printf("file:%s  line:%d  no:%u  \n", __FILE__, __LINE__, testno++);
+}
+
 namespace unet
 {
 #ifdef NETCPP_SSL_AVAILABLE
