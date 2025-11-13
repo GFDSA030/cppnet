@@ -38,6 +38,7 @@ namespace unet
         {
             fprintf(stderr, "setsockopt SO_REUSEADDR error\n");
             close(svScok);
+            svScok = 0;
             return error;
         }
         int off = 0;
@@ -51,6 +52,7 @@ namespace unet
         {
             fprintf(stderr, "Error. Cannot bind socket\n");
             close(svScok);
+            svScok = 0;
             return error;
         }
         if (listen(svScok, 25) < 0)
@@ -70,6 +72,8 @@ namespace unet
             {
                 perror("Error: SSL context\n");
                 ERR_print_errors_fp(stderr);
+                close(svScok);
+                svScok = 0;
                 return error;
             }
             // load crt
@@ -79,6 +83,8 @@ namespace unet
                 ERR_print_errors_fp(stderr);
                 SSL_CTX_free(ctx);
                 ctx = nullptr;
+                close(svScok);
+                svScok = 0;
                 return error;
             }
             // load private key
@@ -88,29 +94,30 @@ namespace unet
                 ERR_print_errors_fp(stderr);
                 SSL_CTX_free(ctx);
                 ctx = nullptr;
+                close(svScok);
+                svScok = 0;
                 return error;
             }
-        }
+
 #else
         // SSL not available
-        if (type == SSL_c)
-        {
-            fprintf(stderr, "ssl isn't avilable\n");
-            return error;
-        }
+        fprintf(stderr, "ssl isn't avilable\n");
+        close(svScok);
+        svScok = 0;
+        return error;
 #endif
+        }
         socklen_t len = sizeof(addr);
 #ifdef __MINGW32__
-        DEBUG_PRINT();
         sock = accept(svScok, (struct sockaddr *)&addr, (int *)&len);
 #else
-        sock = accept(svScok, (struct sockaddr *)&addr, &len);
+    sock = accept(svScok, (struct sockaddr *)&addr, &len);
 #endif
-        DEBUG_PRINT();
         if (sock < 0)
         {
             perror("Error. Cannot accept socket");
-            // don't close svScok here, caller may retry accept
+            close(svScok);
+            svScok = 0;
             return error;
         }
 #ifndef NETCPP_BLOCKING
@@ -124,6 +131,9 @@ namespace unet
             if (!ssl)
             {
                 perror("SSL_new");
+                close(sock);
+                sock = 0;
+                return error;
             }
             SSL_set_fd(ssl, sock);
             if (!SSL_accept(ssl))
@@ -132,6 +142,8 @@ namespace unet
                 ERR_print_errors_fp(stderr);
                 SSL_free(ssl);
                 ssl = nullptr;
+                close(sock);
+                sock = 0;
                 return error;
             }
         }
@@ -143,32 +155,70 @@ namespace unet
     {
         close_s();
         // getipaddrinfo expects (addr, port, ret, type)
-        getipaddrinfo(addr_, port, addr, type);
+        if (getipaddrinfo(addr_, port, addr, type) != success)
+        {
+            fprintf(stderr, "getipaddrinfo failed\n");
+            return error;
+        }
 
         sock = socket(addr.ss_family, SOCK_STREAM, 0);
+        if (sock < 0)
+        {
+            perror("socket() failed");
+            return error;
+        }
 #ifndef NETCPP_BLOCKING
         u_long val = 1;
         ioctl(sock, FIONBIO, &val);
 #endif // NETCPP_BLOCKING
-        connect(sock, (struct sockaddr *)&addr, sizeof(addr));
+        if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+        {
+            perror("connect() failed");
+            close(sock);
+            sock = 0;
+            return error;
+        }
 
 #ifdef NETCPP_SSL_AVAILABLE
         if (type == SSL_c)
         {
             ctx = SSL_CTX_new(TLS_client_method());
+            if (!ctx)
+            {
+                perror("SSL_CTX_new failed");
+                close(sock);
+                sock = 0;
+                return error;
+            }
             ssl = SSL_new(ctx);
+            if (!ssl)
+            {
+                perror("SSL_new failed");
+                close(sock);
+                sock = 0;
+                return error;
+            }
             // SNIを設定
             SSL_set_tlsext_host_name(ssl, addr_);
 
             SSL_set_fd(ssl, sock);
-            SSL_connect(ssl);
+            if (SSL_connect(ssl) <= 0)
+            {
+                perror("SSL_connect failed");
+                ERR_print_errors_fp(stderr);
+                SSL_free(ssl);
+                ssl = nullptr;
+                close(sock);
+                sock = 0;
+                return error;
+            }
         }
 #else
-        if (type == SSL_c)
-        {
-            fprintf(stderr, "ssl isn't avilable\n");
-            return error;
-        }
+    if (type == SSL_c)
+    {
+        fprintf(stderr, "ssl isn't avilable\n");
+        return error;
+    }
 #endif // NETCPP_SSL_AVAILABLE
         this_status = online;
         return success;

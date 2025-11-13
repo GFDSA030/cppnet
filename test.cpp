@@ -66,9 +66,21 @@ void server_thread(unet::sock_type type)
     unet::Standby sv(8080, type);
     std::cout << "Standby is running on [::]:8080  type:" << type << std::endl;
     sv.set(8080, type);
-    sv.accept_s("server.crt", "server.key");
+    int accept_result = sv.accept_s("server.crt", "server.key");
+    if (accept_result != unet::success)
+    {
+        std::cout << console::colors::red << "accept_s failed" << console::colors::reset << std::endl;
+        return;
+    }
+    std::cout << "accept_s succeeded, waiting for data..." << std::endl;
     std::string request;
-    sv.recv_data(request, 4096);
+    int recv_result = sv.recv_data(request, 4096);
+    if (recv_result <= 0)
+    {
+        std::cout << console::colors::red << "recv_data failed or no data" << console::colors::reset << std::endl;
+        sv.close_s();
+        return;
+    }
     std::cout << console::colors::green << "from " << unet::ip2str(sv.get_addr())
               << "\nReceived request:\n"
               << request << console::colors::reset
@@ -256,14 +268,21 @@ int main()
     { // Standby
         std::cout << "---- Standby ----" << std::endl;
         std::thread th(server_thread, unet::sock_type::TCP_c);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(100)); // 100ミリ秒
+        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // サーバーの完全な起動待機
         unet::Standby sv(8080, unet::sock_type::TCP_c);
         sv.set(8080, unet::sock_type::TCP_c);
-        sv.connect_s("::1");
-        sv.send_data(unet::http::get_http_request_header("GET", "/", "localhost"));
-        std::string response = sv.recv_all();
-        sv.close_s();
-        std::cout << console::colors::blue << response << console::colors::reset << std::endl;
+        int connect_result = sv.connect_s("::1");
+        if (connect_result != unet::success)
+        {
+            std::cout << console::colors::red << "connect_s failed" << console::colors::reset << std::endl;
+        }
+        else
+        {
+            sv.send_data(unet::http::get_http_request_header("GET", "/", "localhost"));
+            std::string response = sv.recv_all();
+            sv.close_s();
+            std::cout << console::colors::blue << response << console::colors::reset << std::endl;
+        }
         th.join();
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100ミリ秒
@@ -271,14 +290,21 @@ int main()
     { // StandbySSL
         std::cout << "---- StandbySSL ----" << std::endl;
         std::thread th(server_thread, unet::sock_type::SSL_c);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100ミリ秒
+        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // サーバーの完全な起動待機
         unet::Standby sv_ssl(8080, unet::sock_type::SSL_c);
         sv_ssl.set(8080, unet::sock_type::SSL_c);
-        sv_ssl.connect_s("::1");
-        sv_ssl.send_data(unet::http::get_http_request_header("GET", "/", "localhost"));
-        std::string response = sv_ssl.recv_all();
-        sv_ssl.close_s();
-        std::cout << console::colors::blue << response << console::colors::reset << std::endl;
+        int connect_result = sv_ssl.connect_s("::1");
+        if (connect_result != unet::success)
+        {
+            std::cout << console::colors::red << "connect_s failed" << console::colors::reset << std::endl;
+        }
+        else
+        {
+            sv_ssl.send_data(unet::http::get_http_request_header("GET", "/", "localhost"));
+            std::string response = sv_ssl.recv_all();
+            sv_ssl.close_s();
+            std::cout << console::colors::blue << response << console::colors::reset << std::endl;
+        }
         th.join();
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100ミリ秒

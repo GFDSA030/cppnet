@@ -46,33 +46,33 @@ namespace unet
         }
 
 #ifdef NETCPP_SSL_AVAILABLE
-        if (type != SSL_c)
-            return;
-        ctx = SSL_CTX_new(TLS_server_method());
-        if (!ctx)
+        if (type == SSL_c)
         {
-            perror("Error: SSL context\n");
-            ERR_print_errors_fp(stderr);
-            return;
-        }
-        // load crt
-        if (!SSL_CTX_use_certificate_file(ctx, crt, SSL_FILETYPE_PEM))
-        {
-            perror("Error: SSL_CTX_use_certificate_file()\n");
-            ERR_print_errors_fp(stderr);
-            return;
-        }
-        // load private key
-        if (!SSL_CTX_use_PrivateKey_file(ctx, pem, SSL_FILETYPE_PEM))
-        {
-            perror("Error: SSL_CTX_use_PrivateKey_file()\n");
-            ERR_print_errors_fp(stderr);
-            return;
-        }
+            ctx = SSL_CTX_new(TLS_server_method());
+            if (!ctx)
+            {
+                perror("Error: SSL context\n");
+                ERR_print_errors_fp(stderr);
+                return;
+            }
+            // load crt
+            if (!SSL_CTX_use_certificate_file(ctx, crt, SSL_FILETYPE_PEM))
+            {
+                perror("Error: SSL_CTX_use_certificate_file()\n");
+                ERR_print_errors_fp(stderr);
+                return;
+            }
+            // load private key
+            if (!SSL_CTX_use_PrivateKey_file(ctx, pem, SSL_FILETYPE_PEM))
+            {
+                perror("Error: SSL_CTX_use_PrivateKey_file()\n");
+                ERR_print_errors_fp(stderr);
+                return;
+            }
 #else
-        if (type_ == SSL_c)
-            fprintf(stderr, "ssl isn't avilable\n");
+        fprintf(stderr, "ssl isn't avilable\n");
 #endif
+        }
     }
 
     Server::~Server()
@@ -84,12 +84,12 @@ namespace unet
         IPaddress client;
         socklen_t len = sizeof(client);
         int sockcli;
-        while (cont == 1)
+        while (cont == true)
         {
 #ifdef __MINGW32__
             sockcli = accept(sock, (struct sockaddr *)&client, (int *)&len);
 #else
-            sockcli = accept(sock, (struct sockaddr *)&client, &len);
+        sockcli = accept(sock, (struct sockaddr *)&client, &len);
 #endif
             if (sockcli < 0)
             {
@@ -145,5 +145,4 @@ namespace unet
         type = type_;
         return type;
     }
-
 }

@@ -7,6 +7,7 @@ namespace unet
     };
     server_base::~server_base()
     {
+        stop();
 #ifdef NETCPP_SSL_AVAILABLE
         if (ctx != nullptr)
         {
