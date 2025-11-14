@@ -232,6 +232,7 @@ namespace unet
         close_m();
         if (svScok > 0)
         {
+            shutdown(svScok, SHUT_RW);
             close(svScok);
             svScok = 0;
         }

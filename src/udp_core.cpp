@@ -100,10 +100,12 @@ namespace unet
     {
         if (Tsock > 0)
         {
+            shutdown(Tsock, SHUT_RW);
             close(Tsock);
         }
         if (Rsock > 0)
         {
+            shutdown(Rsock, SHUT_RW);
             close(Rsock);
             Rsock = 0;
         }

@@ -61,11 +61,11 @@ void fnc(unet::net_core &nc, void *udata)
     nc.send_data(response_header, response_header.size());
     nc.close_s();
 }
-void server_thread(unet::sock_type type)
+void server_thread(unet::sock_type type, int p)
 {
-    unet::Standby sv(8080, type);
-    std::cout << "Standby is running on [::]:8080  type:" << type << std::endl;
-    sv.set(8080, type);
+    unet::Standby sv(p, type);
+    std::cout << "Standby is running on [::]:" << p << "  type:" << type << std::endl;
+    sv.set(p, type);
     int accept_result = sv.accept_s("server.crt", "server.key");
     if (accept_result != unet::success)
     {
@@ -267,10 +267,10 @@ int main()
     }
     { // Standby
         std::cout << "---- Standby ----" << std::endl;
-        std::thread th(server_thread, unet::sock_type::TCP_c);
+        std::thread th(server_thread, unet::sock_type::TCP_c, 9090);
         std::this_thread::sleep_for(std::chrono::milliseconds(500)); // サーバーの完全な起動待機
-        unet::Standby sv(8080, unet::sock_type::TCP_c);
-        sv.set(8080, unet::sock_type::TCP_c);
+        unet::Standby sv(9090, unet::sock_type::TCP_c);
+        sv.set(9090, unet::sock_type::TCP_c);
         int connect_result = sv.connect_s("::1");
         if (connect_result != unet::success)
         {
@@ -289,10 +289,10 @@ int main()
 
     { // StandbySSL
         std::cout << "---- StandbySSL ----" << std::endl;
-        std::thread th(server_thread, unet::sock_type::SSL_c);
+        std::thread th(server_thread, unet::sock_type::SSL_c, 7070);
         std::this_thread::sleep_for(std::chrono::milliseconds(500)); // サーバーの完全な起動待機
-        unet::Standby sv_ssl(8080, unet::sock_type::SSL_c);
-        sv_ssl.set(8080, unet::sock_type::SSL_c);
+        unet::Standby sv_ssl(7070, unet::sock_type::SSL_c);
+        sv_ssl.set(7070, unet::sock_type::SSL_c);
         int connect_result = sv_ssl.connect_s("::1");
         if (connect_result != unet::success)
         {
