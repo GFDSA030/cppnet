@@ -213,11 +213,11 @@ int main()
 
     { // ServerSSL
         std::cout << "---- ServerSSL ----" << std::endl;
-        unet::Server server(8080, fnc, unet::sock_type::SSL_c, "server.crt", "server.key");
+        unet::Server server(8088, fnc, unet::sock_type::SSL_c, "server.crt", "server.key");
         std::cout << "Server is running on [::]:8080" << std::endl;
         server.listen_p(false); // 非ブロッキングでリッスン開始
         unet::Client client;
-        client.connect_s("::1", unet::sock_type::SSL_c, 8080);
+        client.connect_s("::1", unet::sock_type::SSL_c, 8088);
         client.send_data(unet::http::get_http_request_header("GET", "/", "localhost"));
         std::string response = client.recv_all();
         client.close_s();
