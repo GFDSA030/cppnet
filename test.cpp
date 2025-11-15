@@ -52,7 +52,6 @@ void fnc(unet::net_core &nc, void *udata)
               << "\nReceived request:\n"
               << buffer << console::colors::reset
               << std::endl;
-    // std::string response_body = "<html><body><h1>Hello, World!</h1></body></html>";
     std::string response_header = "HTTP/1.1 200 OK"
                                   "\r\nContent-Type: text/html; charset=UTF-8"
                                   "\r\nConnection: close"
@@ -101,20 +100,16 @@ void udp_thread()
     char udp_buf[1024] = {0};
     unet::IPaddress udp_addr;
     uc.recv_data(&udp_addr, udp_buf, 1024);
-    // if (ret > 0)
-    // {
     std::cout << console::colors::masenda
               << "from " << unet::ip2str(udp_addr) << "\nReceived UDP message: " << udp_buf
               << console::colors::reset << std::endl;
-    // }
     uc.send_data(unet::ip2str(udp_addr).c_str(), udp_buf, sizeof(udp_buf));
 }
 int main()
 {
+    constexpr int test_delay = 50;
+    constexpr int server_delay = 100;
     unet::netcpp_start();
-    // {
-    //     server_thread(unet::sock_type::TCP_c);
-    // }
     { // getaddrinfo
         std::cout << "---- getaddrinfo ----" << std::endl;
         addrinfo hints = {};
@@ -125,16 +120,11 @@ int main()
         addrinfo *res;
         int status = getaddrinfo("example.com", NULL, &hints, &res);
         if (status != 0)
-        {
-            // std::cerr << "getaddrinfo error: " << gai_strerror(status) << std::endl;
             return 1;
-        }
         for (addrinfo *p = res; p != nullptr; p = p->ai_next)
         {
             // char ipstr[INET_ADDRSTRLEN];
             char ipstr[INET6_ADDRSTRLEN];
-            // struct sockaddr_in *ipv4 = (struct sockaddr_in *)p->ai_addr;
-            // inet_ntop(p->ai_family, &(ipv4->sin_addr), ipstr, sizeof(ipstr));
             void *addr;
             if (p->ai_family == AF_INET) // IPv4
             {
@@ -151,7 +141,7 @@ int main()
         }
         freeaddrinfo(res);
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100ミリ秒
+    std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
     { // getipaddeinfo
         std::cout << "---- getipaddrinfo ----" << std::endl;
@@ -163,7 +153,6 @@ int main()
             std::cout << "IP Address: " << unet::ip2str(ret) << std::endl;
             // httpリクエストを送ってみる
             int sock = socket(((struct sockaddr_in *)&ret)->sin_family, SOCK_STREAM, 0);
-            // int sock = socket(ret.ai_family, SOCK_STREAM, 0);
             connect(sock, (struct sockaddr *)&ret, sizeof(ret));
             // connect(sock, ret.ai_addr, ret.ai_addrlen);
             const char *http_request = "GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n";
@@ -182,20 +171,18 @@ int main()
             std::cout << "getipaddrinfo error" << std::endl;
         }
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100ミリ秒
+    std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
     { // ClientTCPipV6
         std::cout << "---- ClientTCPipV6 ----" << std::endl;
-        // unet::ClientTCPipV6 client("example.com", 80);
         unet::Client client;
         client.connect_s("example.com", unet::sock_type::SSL_c);
         client.send_data(unet::http::get_http_request_header("GET", "/", "example.com"));
         std::string response = client.recv_all();
-        // std::cout << response << std::endl;
         std::cout << unet::http::extract_http_header(response) << std::endl;
         client.close_s();
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100ミリ秒
+    std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
     { // Server
         std::cout << "---- Server ----" << std::endl;
@@ -209,7 +196,7 @@ int main()
         client.close_s();
         std::cout << console::colors::green << response << console::colors::reset << std::endl;
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100ミリ秒
+    std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
     { // ServerSSL
         std::cout << "---- ServerSSL ----" << std::endl;
@@ -223,7 +210,7 @@ int main()
         client.close_s();
         std::cout << console::colors::green << response << console::colors::reset << std::endl;
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100ミリ秒
+    std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
     { // Standby Client
         std::cout << "---- Standby Client ----" << std::endl;
@@ -235,7 +222,7 @@ int main()
         sv.close_s();
         std::cout << console::colors::blue << response << console::colors::reset << std::endl;
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100ミリ秒
+    std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
     { // StandbySSL Client
         std::cout << "---- StandbySSL Client ----" << std::endl;
@@ -248,11 +235,11 @@ int main()
         std::cout << console::colors::blue << response << console::colors::reset << std::endl;
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100ミリ秒
-    {                                                            // UDP
+    std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
+    { // UDP
         std::cout << "---- UDP ----" << std::endl;
         std::thread th(udp_thread);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100
+        std::this_thread::sleep_for(std::chrono::milliseconds(server_delay)); // 100
         unet::udp_core uc;
         uc.set_port(8081, 8080);
         uc.send_data("::1", "Hello via UDP", 13);
@@ -265,10 +252,11 @@ int main()
         }
         th.join();
     }
+    std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
     { // Standby
         std::cout << "---- Standby ----" << std::endl;
         std::thread th(server_thread, unet::sock_type::TCP_c, 9090);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // サーバーの完全な起動待機
+        std::this_thread::sleep_for(std::chrono::milliseconds(server_delay)); // サーバーの完全な起動待機
         unet::Standby sv(9090, unet::sock_type::TCP_c);
         sv.set(9090, unet::sock_type::TCP_c);
         int connect_result = sv.connect_s("::1");
@@ -285,12 +273,12 @@ int main()
         }
         th.join();
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100ミリ秒
+    std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
     { // StandbySSL
         std::cout << "---- StandbySSL ----" << std::endl;
         std::thread th(server_thread, unet::sock_type::SSL_c, 7070);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // サーバーの完全な起動待機
+        std::this_thread::sleep_for(std::chrono::milliseconds(server_delay)); // サーバーの完全な起動待機
         unet::Standby sv_ssl(7070, unet::sock_type::SSL_c);
         sv_ssl.set(7070, unet::sock_type::SSL_c);
         int connect_result = sv_ssl.connect_s("::1");
@@ -307,7 +295,7 @@ int main()
         }
         th.join();
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(500)); // 100ミリ秒
+    std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
     std::cout << "---- Finished ----" << std::endl;
 
