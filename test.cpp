@@ -51,7 +51,7 @@ void fnc(unet::net_core &nc, void *udata)
     std::cout << console::colors::red << "from " << unet::ip2str(nc.remote())
               << "\nReceived request:\n"
               << buffer << console::colors::reset
-              << std::endl;
+              << "\n";
     std::string response_header = "HTTP/1.1 200 OK"
                                   "\r\nContent-Type: text/html; charset=UTF-8"
                                   "\r\nConnection: close"
@@ -60,30 +60,30 @@ void fnc(unet::net_core &nc, void *udata)
     nc.send_data(response_header, response_header.size());
     nc.close_s();
 }
-void server_thread(unet::sock_type type, int p)
+void Standby_thread(unet::sock_type type, int p)
 {
     unet::Standby sv(p, type);
-    std::cout << "Standby is running on [::]:" << p << "  type:" << type << std::endl;
+    std::cout << "Standby is running on [::]:" << p << "  type:" << type << "\n";
     sv.set(p, type);
     int accept_result = sv.accept_s("server.crt", "server.key");
     if (accept_result != unet::success)
     {
-        std::cout << console::colors::red << "accept_s failed" << console::colors::reset << std::endl;
+        std::cout << console::colors::red << "accept_s failed" << console::colors::reset << "\n";
         return;
     }
-    std::cout << "accept_s succeeded, waiting for data..." << std::endl;
+    std::cout << "accept_s succeeded, waiting for data..." << "\n";
     std::string request;
     int recv_result = sv.recv_data(request, 4096);
     if (recv_result <= 0)
     {
-        std::cout << console::colors::red << "recv_data failed or no data" << console::colors::reset << std::endl;
+        std::cout << console::colors::red << "recv_data failed or no data" << console::colors::reset << "\n";
         sv.close_s();
         return;
     }
     std::cout << console::colors::green << "from " << unet::ip2str(sv.get_addr())
               << "\nReceived request:\n"
               << request << console::colors::reset
-              << std::endl;
+              << "\n";
     std::string response_header = "HTTP/1.1 200 OK"
                                   "\r\nContent-Type: text/html; charset=UTF-8"
                                   "\r\nConnection: close"
@@ -91,7 +91,7 @@ void server_thread(unet::sock_type type, int p)
                                   "Hello, World!";
     sv.send_data(response_header, response_header.size());
     sv.close_s();
-    std::cout << "Standby stopped  type:" << type << std::endl;
+    std::cout << "Standby stopped  type:" << type << "\n";
 }
 void udp_thread()
 {
@@ -102,7 +102,7 @@ void udp_thread()
     uc.recv_data(&udp_addr, udp_buf, 1024);
     std::cout << console::colors::masenda
               << "from " << unet::ip2str(udp_addr) << "\nReceived UDP message: " << udp_buf
-              << console::colors::reset << std::endl;
+              << console::colors::reset << "\n";
     uc.send_data(unet::ip2str(udp_addr).c_str(), udp_buf, sizeof(udp_buf));
 }
 int main()
@@ -111,7 +111,7 @@ int main()
     constexpr int server_delay = 100;
     unet::netcpp_start();
     { // getaddrinfo
-        std::cout << "---- getaddrinfo ----" << std::endl;
+        std::cout << "---- getaddrinfo ----" << "\n";
         addrinfo hints = {};
         // hints.ai_family = AF_INET;       // IPv4
         hints.ai_family = AF_UNSPEC;     // IPv4 or IPv6
@@ -137,20 +137,20 @@ int main()
                 addr = &(ipv6->sin6_addr);
             }
             inet_ntop(p->ai_family, addr, ipstr, sizeof(ipstr));
-            std::cout << "IP Address: " << ipstr << std::endl;
+            std::cout << "IP Address: " << ipstr << "\n";
         }
         freeaddrinfo(res);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
-    { // getipaddeinfo
-        std::cout << "---- getipaddrinfo ----" << std::endl;
+    { // getipaddrinfo
+        std::cout << "---- getipaddrinfo ----" << "\n";
         const char *addrstr = "example.com";
         int port = 80;
         unet::IPaddress ret;
         if (unet::getipaddrinfo(addrstr, port, ret) == unet::success)
         {
-            std::cout << "IP Address: " << unet::ip2str(ret) << std::endl;
+            std::cout << "IP Address: " << unet::ip2str(ret) << "\n";
             // httpリクエストを送ってみる
             int sock = socket(((struct sockaddr_in *)&ret)->sin_family, SOCK_STREAM, 0);
             connect(sock, (struct sockaddr *)&ret, sizeof(ret));
@@ -162,82 +162,83 @@ int main()
             while ((bytes_received = recv(sock, buffer, sizeof(buffer) - 1, 0)) > 0)
             {
                 buffer[bytes_received] = '\0'; // Null-terminate the received data
-                std::cout << buffer;
+                std::cout << console::colors::green << buffer;
             }
             close(sock);
         }
         else
         {
-            std::cout << "getipaddrinfo error" << std::endl;
+            std::cout << "getipaddrinfo error" << "\n";
         }
+        std::cout << console::colors::reset;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
-    { // ClientTCPipV6
-        std::cout << "---- ClientTCPipV6 ----" << std::endl;
+    { // Client SSL_c
+        std::cout << "---- Client SSL_c ----" << "\n";
         unet::Client client;
         client.connect_s("example.com", unet::sock_type::SSL_c);
         client.send_data(unet::http::get_http_request_header("GET", "/", "example.com"));
         std::string response = client.recv_all();
-        std::cout << unet::http::extract_http_header(response) << std::endl;
+        std::cout << console::colors::green << unet::http::extract_http_header(response) << console::colors::reset << "\n";
         client.close_s();
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
-    { // Server
-        std::cout << "---- Server ----" << std::endl;
+    { // Server TCP_c
+        std::cout << "---- Server TCP_c ----" << "\n";
         unet::Server server(8080, fnc, unet::sock_type::TCP_c, "server.crt", "server.key");
-        std::cout << "Server is running on [::]:8080" << std::endl;
+        std::cout << "Server is running on [::]:8080" << "\n";
         server.listen_p(false); // 非ブロッキングでリッスン開始
         unet::Client client;
         client.connect_s("::1", unet::sock_type::TCP_c, 8080);
         client.send_data(unet::http::get_http_request_header("GET", "/", "localhost"));
         std::string response = client.recv_all();
         client.close_s();
-        std::cout << console::colors::green << response << console::colors::reset << std::endl;
+        std::cout << console::colors::green << response << console::colors::reset << "\n";
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
-    { // ServerSSL
-        std::cout << "---- ServerSSL ----" << std::endl;
+    { // Server SSL_c
+        std::cout << "---- Server SSL_c ----" << "\n";
         unet::Server server(8088, fnc, unet::sock_type::SSL_c, "server.crt", "server.key");
-        std::cout << "Server is running on [::]:8080" << std::endl;
+        std::cout << "Server is running on [::]:8080" << "\n";
         server.listen_p(false); // 非ブロッキングでリッスン開始
         unet::Client client;
         client.connect_s("::1", unet::sock_type::SSL_c, 8088);
         client.send_data(unet::http::get_http_request_header("GET", "/", "localhost"));
         std::string response = client.recv_all();
         client.close_s();
-        std::cout << console::colors::green << response << console::colors::reset << std::endl;
+        std::cout << console::colors::green << response << console::colors::reset << "\n";
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
-    { // Standby Client
-        std::cout << "---- Standby Client ----" << std::endl;
+    { // Standby Client TCP_c
+        std::cout << "---- Standby Client TCP_c ----" << "\n";
         unet::Standby sv(80, unet::sock_type::TCP_c);
         sv.set(80, unet::sock_type::TCP_c);
         sv.connect_s("example.com");
         sv.send_data(unet::http::get_http_request_header("GET", "/", "example.com"));
         std::string response = sv.recv_all();
         sv.close_s();
-        std::cout << console::colors::blue << response << console::colors::reset << std::endl;
+        std::cout << console::colors::blue << response << console::colors::reset << "\n";
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
-    { // StandbySSL Client
-        std::cout << "---- StandbySSL Client ----" << std::endl;
+    { // Standby Client SSL_c
+        std::cout << "---- Standby Client SSL_c ----" << "\n";
         unet::Standby sv(443, unet::sock_type::SSL_c);
         sv.set(443, unet::sock_type::SSL_c);
         sv.connect_s("example.com");
         sv.send_data(unet::http::get_http_request_header("GET", "/", "example.com"));
         std::string response = sv.recv_all();
         sv.close_s();
-        std::cout << console::colors::blue << response << console::colors::reset << std::endl;
+        std::cout << console::colors::blue << response << console::colors::reset << "\n";
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
     { // UDP
-        std::cout << "---- UDP ----" << std::endl;
+        std::cout << "---- UDP ----" << "\n";
         std::thread th(udp_thread);
         std::this_thread::sleep_for(std::chrono::milliseconds(server_delay)); // 100
         unet::udp_core uc;
@@ -248,56 +249,56 @@ int main()
         if (udp_bytes > 0)
         {
             udp_buf[udp_bytes] = '\0';
-            std::cout << "Received UDP message: " << udp_buf << std::endl;
+            std::cout << "Received UDP message: " << udp_buf << "\n";
         }
         th.join();
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
-    { // Standby
-        std::cout << "---- Standby ----" << std::endl;
-        std::thread th(server_thread, unet::sock_type::TCP_c, 9090);
+    { // Standby Server TCP_c
+        std::cout << "---- Standby Server TCP_c ----" << "\n";
+        std::thread th(Standby_thread, unet::sock_type::TCP_c, 9090);
         std::this_thread::sleep_for(std::chrono::milliseconds(server_delay)); // サーバーの完全な起動待機
         unet::Standby sv(9090, unet::sock_type::TCP_c);
         sv.set(9090, unet::sock_type::TCP_c);
         int connect_result = sv.connect_s("::1");
         if (connect_result != unet::success)
         {
-            std::cout << console::colors::red << "connect_s failed" << console::colors::reset << std::endl;
+            std::cout << console::colors::red << "connect_s failed" << console::colors::reset << "\n";
         }
         else
         {
             sv.send_data(unet::http::get_http_request_header("GET", "/", "localhost"));
             std::string response = sv.recv_all();
             sv.close_s();
-            std::cout << console::colors::blue << response << console::colors::reset << std::endl;
+            std::cout << console::colors::blue << response << console::colors::reset << "\n";
         }
         th.join();
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
-    { // StandbySSL
-        std::cout << "---- StandbySSL ----" << std::endl;
-        std::thread th(server_thread, unet::sock_type::SSL_c, 7070);
+    { // Standby Server SSL_c
+        std::cout << "---- Standby Server SSL_c ----" << "\n";
+        std::thread th(Standby_thread, unet::sock_type::SSL_c, 7070);
         std::this_thread::sleep_for(std::chrono::milliseconds(server_delay)); // サーバーの完全な起動待機
         unet::Standby sv_ssl(7070, unet::sock_type::SSL_c);
         sv_ssl.set(7070, unet::sock_type::SSL_c);
         int connect_result = sv_ssl.connect_s("::1");
         if (connect_result != unet::success)
         {
-            std::cout << console::colors::red << "connect_s failed" << console::colors::reset << std::endl;
+            std::cout << console::colors::red << "connect_s failed" << console::colors::reset << "\n";
         }
         else
         {
             sv_ssl.send_data(unet::http::get_http_request_header("GET", "/", "localhost"));
             std::string response = sv_ssl.recv_all();
             sv_ssl.close_s();
-            std::cout << console::colors::blue << response << console::colors::reset << std::endl;
+            std::cout << console::colors::blue << response << console::colors::reset << "\n";
         }
         th.join();
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
-    std::cout << "---- Finished ----" << std::endl;
+    std::cout << "---- Finished ----" << "\n";
 
     unet::netcpp_stop();
     return 0;
