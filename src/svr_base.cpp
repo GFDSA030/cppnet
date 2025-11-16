@@ -17,6 +17,7 @@ namespace unet
 #endif
         if (sock > 0)
         {
+            shutdown(sock, SHUT_RW);
             close(sock);
             sock = 0;
         }
@@ -34,6 +35,7 @@ namespace unet
 #endif
         if (sock > 0)
         {
+            shutdown(sock, SHUT_RW);
             close(sock);
             sock = 0;
         }

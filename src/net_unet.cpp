@@ -136,4 +136,11 @@ namespace unet
         inet_ntop(addr.ss_family, addr_ptr, ipstr, sizeof(ipstr));
         return std::string(ipstr);
     }
+    IPaddress str2ip(const std::string &addr)
+    {
+        IPaddress ret = {};
+        int af = addr.find('.') == std::string::npos ? AF_INET6 : AF_INET;
+        inet_pton(af, addr.c_str(), &ret);
+        return ret;
+    }
 }

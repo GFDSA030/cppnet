@@ -102,6 +102,7 @@ namespace unet
         {
             shutdown(Tsock, SHUT_RW);
             close(Tsock);
+            Tsock = 0;
         }
         if (Rsock > 0)
         {
