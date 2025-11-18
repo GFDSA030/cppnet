@@ -111,7 +111,7 @@ int main()
     constexpr int server_delay = 100;
     unet::netcpp_start();
     { // getaddrinfo
-        std::cout << "---- getaddrinfo ----" << "\n";
+        std::cout << "---- getaddrinfo To:[example.com] ----" << "\n";
         addrinfo hints = {};
         // hints.ai_family = AF_INET;       // IPv4
         hints.ai_family = AF_UNSPEC;     // IPv4 or IPv6
@@ -144,7 +144,7 @@ int main()
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
     { // getipaddrinfo
-        std::cout << "---- getipaddrinfo ----" << "\n";
+        std::cout << "---- getipaddrinfo To:[example.com] ----" << "\n";
         const char *addrstr = "example.com";
         int port = 80;
         unet::IPaddress ret;
@@ -175,7 +175,7 @@ int main()
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
     { // Client SSL_c
-        std::cout << "---- Client SSL_c ----" << "\n";
+        std::cout << "---- Client SSL_c To:[example.com] ----" << "\n";
         unet::Client client;
         client.connect_s("example.com", unet::sock_type::SSL_c);
         client.send_data(unet::http::get_http_request_header("GET", "/", "example.com"));
@@ -186,7 +186,7 @@ int main()
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
     { // Server TCP_c
-        std::cout << "---- Server TCP_c ----" << "\n";
+        std::cout << "---- Server TCP_c To:[::1] ----" << "\n";
         unet::Server server(8080, fnc, unet::sock_type::TCP_c, "server.crt", "server.key");
         std::cout << "Server is running on [::]:8080" << "\n";
         server.listen_p(false); // 非ブロッキングでリッスン開始
@@ -200,7 +200,7 @@ int main()
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
     { // Server SSL_c
-        std::cout << "---- Server SSL_c ----" << "\n";
+        std::cout << "---- Server SSL_c To:[::1] ----" << "\n";
         unet::Server server(8088, fnc, unet::sock_type::SSL_c, "server.crt", "server.key");
         std::cout << "Server is running on [::]:8080" << "\n";
         server.listen_p(false); // 非ブロッキングでリッスン開始
@@ -214,7 +214,7 @@ int main()
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
     { // Standby Client TCP_c
-        std::cout << "---- Standby Client TCP_c ----" << "\n";
+        std::cout << "---- Standby Client TCP_c To:[example.com] ----" << "\n";
         unet::Standby sv(80, unet::sock_type::TCP_c);
         sv.set(80, unet::sock_type::TCP_c);
         sv.connect_s("example.com");
@@ -226,7 +226,7 @@ int main()
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
     { // Standby Client SSL_c
-        std::cout << "---- Standby Client SSL_c ----" << "\n";
+        std::cout << "---- Standby Client SSL_c To:[example.com] ----" << "\n";
         unet::Standby sv(443, unet::sock_type::SSL_c);
         sv.set(443, unet::sock_type::SSL_c);
         sv.connect_s("example.com");
@@ -238,7 +238,7 @@ int main()
 
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
     { // UDP
-        std::cout << "---- UDP ----" << "\n";
+        std::cout << "---- UDP To:[::1] ----" << "\n";
         std::thread th(udp_thread);
         std::this_thread::sleep_for(std::chrono::milliseconds(server_delay)); // 100
         unet::udp_core uc;
@@ -255,7 +255,7 @@ int main()
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
     { // Standby Server TCP_c
-        std::cout << "---- Standby Server TCP_c ----" << "\n";
+        std::cout << "---- Standby Server TCP_c To:[::1] ----" << "\n";
         std::thread th(Standby_thread, unet::sock_type::TCP_c, 9090);
         std::this_thread::sleep_for(std::chrono::milliseconds(server_delay)); // サーバーの完全な起動待機
         unet::Standby sv(9090, unet::sock_type::TCP_c);
@@ -277,7 +277,7 @@ int main()
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
     { // Standby Server SSL_c
-        std::cout << "---- Standby Server SSL_c ----" << "\n";
+        std::cout << "---- Standby Server SSL_c To:[::1] ----" << "\n";
         std::thread th(Standby_thread, unet::sock_type::SSL_c, 7070);
         std::this_thread::sleep_for(std::chrono::milliseconds(server_delay)); // サーバーの完全な起動待機
         unet::Standby sv_ssl(7070, unet::sock_type::SSL_c);

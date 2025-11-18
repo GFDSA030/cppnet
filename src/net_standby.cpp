@@ -179,9 +179,9 @@ namespace unet
             return error;
         }
 
-#ifdef NETCPP_SSL_AVAILABLE
         if (type == SSL_c)
         {
+#ifdef NETCPP_SSL_AVAILABLE
             ctx = SSL_CTX_new(TLS_client_method());
             if (!ctx)
             {
@@ -212,14 +212,12 @@ namespace unet
                 sock = 0;
                 return error;
             }
-        }
+
 #else
-    if (type == SSL_c)
-    {
-        fprintf(stderr, "ssl isn't avilable\n");
-        return error;
-    }
+    fprintf(stderr, "ssl isn't avilable\n");
+    return error;
 #endif // NETCPP_SSL_AVAILABLE
+        }
         this_status = online;
         return success;
     }
