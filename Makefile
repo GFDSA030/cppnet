@@ -1,14 +1,12 @@
 ifeq ($(OS),Windows_NT)
-CC = clang++
+CC = g++
 IFILE = -ID:\dev\lib\mingw\include
 LFILE = -LD:\dev\lib\mingw\lib
-LIBS = -L. -lssl -lcrypto -lCrypt32 -pthread -lws2_32 -Wl,-s -static -static-libgcc -static-libstdc++ -fuse-ld=lld $(LFILE)
-MINLIB = -L. -lssl -lcrypto -lCrypt32 -pthread -lws2_32 -Wl,-s -fuse-ld=lld $(LFILE)
-#add msys package
+LIBS = -L. -lssl -lcrypto -lCrypt32 -pthread -lws2_32 -Wl,-s $(LFILE)
 CFLAG = -I. -Iinclude -Wall -O2 -std=c++20 $(IFILE)
 AR = ar
 else
-CC = clang++
+CC = g++
 IFILE =
 LFILE =
 LIBS = -L. -lssl -lcrypto -pthread -Wl,-s $(LFILE)
@@ -23,9 +21,6 @@ all: main.out test2.out
 main.out: build/main.o libunet.a
 test2.out: build/test2.o libunet.a
 udp.out: build/udptest.o libunet.a
-
-_min.out:build/main.o libunet.a
-	$(CC) $^ -o $@ $(MINLIB)
 
 libunet.a:$(TARGETS2)
 build/main.o: main.cpp
