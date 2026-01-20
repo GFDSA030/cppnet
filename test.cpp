@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <chrono>
 #include <thread>
+#include <bitset>
 
 namespace console
 {
@@ -109,7 +110,11 @@ int main()
 {
     constexpr int test_delay = 50;
     constexpr int server_delay = 100;
+
+    static uint32_t results = 0;
+
     unet::netcpp_start();
+    do
     { // getaddrinfo
         std::cout << "---- getaddrinfo To:[example.com] ----" << "\n";
         addrinfo hints = {};
@@ -120,7 +125,7 @@ int main()
         addrinfo *res;
         int status = getaddrinfo("example.com", NULL, &hints, &res);
         if (status != 0)
-            return 1;
+            break;
         for (addrinfo *p = res; p != nullptr; p = p->ai_next)
         {
             // char ipstr[INET_ADDRSTRLEN];
@@ -140,7 +145,8 @@ int main()
             std::cout << "IP Address: " << ipstr << "\n";
         }
         freeaddrinfo(res);
-    }
+        results |= 1 << 0;
+    } while (0);
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
     { // getipaddrinfo
@@ -165,6 +171,7 @@ int main()
                 std::cout << console::colors::green << buffer;
             }
             close(sock);
+            results |= 1 << 1;
         }
         else
         {
@@ -182,6 +189,8 @@ int main()
         std::string response = client.recv_all();
         std::cout << console::colors::green << unet::http::extract_http_header(response) << console::colors::reset << "\n";
         client.close_s();
+        if (response.starts_with("HTTP/1.1 200 OK"))
+            results |= 1 << 2;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
@@ -196,6 +205,8 @@ int main()
         std::string response = client.recv_all();
         client.close_s();
         std::cout << console::colors::green << response << console::colors::reset << "\n";
+        if (response.starts_with("HTTP/1.1 200 OK"))
+            results |= 1 << 3;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
@@ -210,6 +221,8 @@ int main()
         std::string response = client.recv_all();
         client.close_s();
         std::cout << console::colors::green << response << console::colors::reset << "\n";
+        if (response.starts_with("HTTP/1.1 200 OK"))
+            results |= 1 << 4;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
@@ -222,6 +235,8 @@ int main()
         std::string response = sv.recv_all();
         sv.close_s();
         std::cout << console::colors::blue << response << console::colors::reset << "\n";
+        if (response.starts_with("HTTP/1.1 200 OK"))
+            results |= 1 << 5;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
@@ -234,6 +249,8 @@ int main()
         std::string response = sv.recv_all();
         sv.close_s();
         std::cout << console::colors::blue << response << console::colors::reset << "\n";
+        if (response.starts_with("HTTP/1.1 200 OK"))
+            results |= 1 << 6;
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
@@ -252,6 +269,8 @@ int main()
             std::cout << "Received UDP message: " << udp_buf << "\n";
         }
         th.join();
+        if (std::string(udp_buf).starts_with("Hello via UDP"))
+            results |= 1 << 7;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
     { // Standby Server TCP_c
@@ -271,6 +290,8 @@ int main()
             std::string response = sv.recv_all();
             sv.close_s();
             std::cout << console::colors::blue << response << console::colors::reset << "\n";
+            if (response.starts_with("HTTP/1.1 200 OK"))
+                results |= 1 << 8;
         }
         th.join();
     }
@@ -293,13 +314,15 @@ int main()
             std::string response = sv_ssl.recv_all();
             sv_ssl.close_s();
             std::cout << console::colors::blue << response << console::colors::reset << "\n";
+            if (response.starts_with("HTTP/1.1 200 OK"))
+                results |= 1 << 9;
         }
         th.join();
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
     std::cout << "---- Finished ----" << "\n";
-
+    std::cout << console::colors::green << std::bitset<10>(results) << console::reset;
     unet::netcpp_stop();
     return 0;
 }
