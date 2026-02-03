@@ -10,11 +10,35 @@ namespace unet
             return error;
         return send(sock, (char *)data, len, 0);
     }
-    int net_base::recv_tcp(void *buf, size_t len) const noexcept
+    int net_base::recv_tcp(void *buf, size_t len, int32_t timeout) const noexcept
     {
         if (this_status == offline)
             return error;
-        return recv(sock, (char *)buf, len, 0);
+
+        // Use select for timeout handling
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        FD_SET(sock, &readfds);
+
+        struct timeval tv;
+        tv.tv_sec = timeout / 1000;
+        tv.tv_usec = (timeout % 1000) * 1000;
+
+        int sel = select(sock + 1, &readfds, NULL, NULL, timeout >= 0 ? &tv : NULL);
+        if (sel > 0)
+        {
+            return recv(sock, (char *)buf, len, 0);
+        }
+        else if (sel == 0)
+        {
+            // Timeout occurred
+            return 0;
+        }
+        else
+        {
+            // Error occurred
+            return error;
+        }
     }
     int net_base::close_tcp() noexcept
     {
@@ -31,11 +55,35 @@ namespace unet
             return error;
         return SSL_write(ssl, (char *)data, len);
     }
-    int net_base::recv_ssl(void *buf, size_t len) const noexcept
+    int net_base::recv_ssl(void *buf, size_t len, int32_t timeout) const noexcept
     {
         if (this_status == offline)
             return error;
-        return SSL_read(ssl, (char *)buf, len);
+
+        // Use select for timeout handling
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        FD_SET(sock, &readfds);
+
+        struct timeval tv;
+        tv.tv_sec = timeout / 1000;
+        tv.tv_usec = (timeout % 1000) * 1000;
+
+        int sel = select(sock + 1, &readfds, NULL, NULL, timeout >= 0 ? &tv : NULL);
+        if (sel > 0)
+        {
+            return SSL_read(ssl, (char *)buf, len);
+        }
+        else if (sel == 0)
+        {
+            // Timeout occurred
+            return 0;
+        }
+        else
+        {
+            // Error occurred
+            return error;
+        }
     }
     int net_base::close_ssl() noexcept
     {
@@ -66,14 +114,14 @@ namespace unet
         case TCP_c:
             type = TCP_c;
             send_m = std::bind(&net_base::send_tcp, this, std::placeholders::_1, std::placeholders::_2);
-            recv_m = std::bind(&net_base::recv_tcp, this, std::placeholders::_1, std::placeholders::_2);
+            recv_m = std::bind(&net_base::recv_tcp, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
             close_m = std::bind(&net_base::close_tcp, this);
             break;
         case SSL_c:
 #ifdef NETCPP_SSL_AVAILABLE
             type = SSL_c;
             send_m = std::bind(&net_base::send_ssl, this, std::placeholders::_1, std::placeholders::_2);
-            recv_m = std::bind(&net_base::recv_ssl, this, std::placeholders::_1, std::placeholders::_2);
+            recv_m = std::bind(&net_base::recv_ssl, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
             close_m = std::bind(&net_base::close_ssl, this);
 #else
             return error;
@@ -94,7 +142,7 @@ namespace unet
         base_len++;
         this_no = base_no;
         send_m = std::bind(&net_base::send_tcp, this, std::placeholders::_1, std::placeholders::_2);
-        recv_m = std::bind(&net_base::recv_tcp, this, std::placeholders::_1, std::placeholders::_2);
+        recv_m = std::bind(&net_base::recv_tcp, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
         close_m = std::bind(&net_base::close_tcp, this);
     }
     net_base::~net_base()
@@ -126,9 +174,9 @@ namespace unet
             return error;
         return send_m(data, len);
     }
-    int net_base::recv_data(void *buf, size_t len) const noexcept
+    int net_base::recv_data(void *buf, size_t len, int32_t timeout) const noexcept
     {
-        return recv_m(buf, len);
+        return recv_m(buf, len, timeout);
     }
 
     int net_base::send_data(const std::string &data, size_t len) const noexcept
@@ -139,13 +187,13 @@ namespace unet
             return 0;
         return send_m(data.c_str(), len);
     }
-    int net_base::recv_data(std::string &buf, size_t len) const noexcept
+    int net_base::recv_data(std::string &buf, size_t len, int32_t timeout) const noexcept
     {
         if (len == 0)
             return 0;
         char *buffer = new char[len];
         memset(buffer, 0, len);
-        int ret = recv_m(buffer, len);
+        int ret = recv_m(buffer, len, timeout);
         if (ret > 0)
         {
             buf.assign(buffer, ret);
@@ -191,7 +239,7 @@ namespace unet
             }
 
             // socket is readable
-            int ret = recv_data(buffer, BUF_SIZE);
+            int ret = recv_data(buffer, BUF_SIZE, -1);
             if (ret > 0)
             {
                 result.append(buffer, ret);
