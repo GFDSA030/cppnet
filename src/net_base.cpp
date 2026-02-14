@@ -201,7 +201,7 @@ namespace unet
         delete[] buffer;
         return ret;
     }
-    std::string net_base::recv_all() const noexcept
+    std::string net_base::recv_all(int32_t timeout) const noexcept
     {
         char buffer[BUF_SIZE];
         std::string result;
@@ -239,7 +239,7 @@ namespace unet
             }
 
             // socket is readable
-            int ret = recv_data(buffer, BUF_SIZE, -1);
+            int ret = recv_data(buffer, BUF_SIZE, timeout);
             if (ret > 0)
             {
                 result.append(buffer, ret);

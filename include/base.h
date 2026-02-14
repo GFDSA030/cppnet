@@ -70,12 +70,31 @@ namespace unet
         /// @param timeout タイムアウト時間(ms)、-1で無限待機
         /// @return 受信バイト数、エラー時は-1
         int recv_data(std::string &buf, size_t len, int32_t timeout = -1) const noexcept;
-        /// @brief 全データ受信(ブロッキング) 通信終了時まで
+        /// @brief 全データ受信 通信終了時まで
         /// @return 受信データ、エラー時は空文字
-        std::string recv_all() const noexcept;
+        std::string recv_all(int32_t timeout = -1) const noexcept;
         /// @brief ソケットクローズ
         /// @return クローズ成功で0、エラー時は-1
         int close_s() noexcept;
+    };
+
+    class Crypt_base : protected net_base
+    {
+    private:
+        Crypt_base() noexcept;
+        ~Crypt_base();
+
+        uint8_t key[32];
+
+    public:
+        static int setkey(Crypt_base &ret);
+        int send(const std::string &data, size_t len = 0) const noexcept;
+        /// @brief 全データ受信 通信終了時まで
+        /// @return 受信データ、エラー時は空文字
+        std::string recv(int32_t timeout = -1) const noexcept;
+        /// @brief ソケットクローズ
+        /// @return クローズ成功で0、エラー時は-1
+        int close() noexcept;
     };
 
     class net_core : public net_base
