@@ -87,7 +87,8 @@ namespace unet
         unknown = -1,
         TCP_c = 80,
         SSL_c = 443,
-        UDP_c = 100
+        UDP_c = 100,
+        CRY_c = 900,
     };
 
     enum status
