@@ -29,47 +29,80 @@ namespace unet
         u_long val = 1;
         ioctl(sock, FIONBIO, &val);
 #endif // NETCPP_BLOCKING
-        if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+        switch (type)
         {
-            perror("connect() failed");
-            close(sock);
-            this_status = offline;
-            return;
+        case TCP_c:
+        {
+            if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+            {
+                perror("connect() failed");
+                close(sock);
+                this_status = offline;
+                return;
+            }
+        }
+        break;
+        case CRY_c:
+        {
+            if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+            {
+                perror("connect() failed");
+                close(sock);
+                this_status = offline;
+                return;
+            }
         }
 
+            break;
+        case SSL_c:
+        {
+            if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+            {
+                perror("connect() failed");
+                close(sock);
+                this_status = offline;
+                return;
+            }
 #ifdef NETCPP_SSL_AVAILABLE
-        if (type == SSL_c)
-        {
-            ctx = SSL_CTX_new(TLS_client_method());
-            if (!ctx)
+            if (type == SSL_c)
             {
-                perror("SSL_CTX_new failed");
-                close(sock);
-                this_status = offline;
-                return;
-            }
-            ssl = SSL_new(ctx);
-            // SNIを設定
-            SSL_set_tlsext_host_name(ssl, addr_);
+                ctx = SSL_CTX_new(TLS_client_method());
+                if (!ctx)
+                {
+                    perror("SSL_CTX_new failed");
+                    close(sock);
+                    this_status = offline;
+                    return;
+                }
+                ssl = SSL_new(ctx);
+                // SNIを設定
+                SSL_set_tlsext_host_name(ssl, addr_);
 
-            SSL_set_fd(ssl, sock);
-            if (SSL_connect(ssl) <= 0)
-            {
-                perror("SSL_connect failed");
-                ERR_print_errors_fp(stderr);
-                SSL_free(ssl);
-                ssl = nullptr;
-                SSL_CTX_free(ctx);
-                ctx = nullptr;
-                close(sock);
-                this_status = offline;
-                return;
+                SSL_set_fd(ssl, sock);
+                if (SSL_connect(ssl) <= 0)
+                {
+                    perror("SSL_connect failed");
+                    ERR_print_errors_fp(stderr);
+                    SSL_free(ssl);
+                    ssl = nullptr;
+                    SSL_CTX_free(ctx);
+                    ctx = nullptr;
+                    close(sock);
+                    this_status = offline;
+                    return;
+                }
             }
-        }
 #else
-        if (type_ == SSL_c)
-            fprintf(stderr, "ssl isn't avilable\n");
+            if (type_ == SSL_c)
+                fprintf(stderr, "ssl isn't avilable\n");
 #endif // NETCPP_SSL_AVAILABLE
+        }
+        break;
+
+        default:
+            break;
+        }
+
         this_status = online;
     }
 
@@ -135,7 +168,7 @@ namespace unet
                 return error;
             }
 #else
-        fprintf(stderr, "ssl isn't avilable\n");
+            fprintf(stderr, "ssl isn't avilable\n");
 #endif // NETCPP_SSL_AVAILABLE
         }
         this_status = online;

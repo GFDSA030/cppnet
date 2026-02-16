@@ -2,6 +2,7 @@
 #include <infnc.h>
 #include <string>
 #include <thread>
+
 namespace unet
 {
     int net_base::send_tcp(const void *data, size_t len) const noexcept
@@ -47,6 +48,51 @@ namespace unet
         this_status = offline;
         shutdown(sock, SHUT_RW);
         return close(sock);
+    }
+
+    int net_base::send_cry(const void *data, size_t len) const noexcept
+    {
+        if (this_status == offline)
+            return error;
+        return cry::send_crypt(sock, (char *)data, len, 0);
+    }
+    int net_base::recv_cry(void *buf, size_t len, int32_t timeout) const noexcept
+    {
+        if (this_status == offline)
+            return error;
+
+        // Use select for timeout handling
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        FD_SET(sock, &readfds);
+
+        struct timeval tv;
+        tv.tv_sec = timeout / 1000;
+        tv.tv_usec = (timeout % 1000) * 1000;
+
+        int sel = select(sock + 1, &readfds, NULL, NULL, timeout >= 0 ? &tv : NULL);
+        if (sel > 0)
+        {
+            return cry::recv_crypt(sock, (char *)buf, len, 0);
+        }
+        else if (sel == 0)
+        {
+            // Timeout occurred
+            return 0;
+        }
+        else
+        {
+            // Error occurred
+            return error;
+        }
+    }
+    int net_base::close_cry() noexcept
+    {
+        if (this_status == offline)
+            return error;
+        this_status = offline;
+        cry::shutdown_crypt(sock, SHUT_RW);
+        return cry::close_crypt(sock);
     }
 #ifdef NETCPP_SSL_AVAILABLE
     int net_base::send_ssl(const void *data, size_t len) const noexcept
@@ -116,6 +162,12 @@ namespace unet
             send_m = std::bind(&net_base::send_tcp, this, std::placeholders::_1, std::placeholders::_2);
             recv_m = std::bind(&net_base::recv_tcp, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
             close_m = std::bind(&net_base::close_tcp, this);
+            break;
+        case CRY_c:
+            type = CRY_c;
+            send_m = std::bind(&net_base::send_cry, this, std::placeholders::_1, std::placeholders::_2);
+            recv_m = std::bind(&net_base::recv_cry, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+            close_m = std::bind(&net_base::close_cry, this);
             break;
         case SSL_c:
 #ifdef NETCPP_SSL_AVAILABLE
