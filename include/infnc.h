@@ -3,6 +3,7 @@
 
 #include <base.h>
 #include <thread>
+#include "cryptaes.h"
 
 #if defined(__MINGW32__) // OS
 

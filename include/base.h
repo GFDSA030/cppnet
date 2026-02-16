@@ -21,6 +21,10 @@ namespace unet
         int send_tcp(const void *data, size_t len) const noexcept;
         int recv_tcp(void *buf, size_t len, int32_t timeout) const noexcept;
         int close_tcp() noexcept;
+
+        int send_cry(const void *data, size_t len) const noexcept;
+        int recv_cry(void *buf, size_t len, int32_t timeout) const noexcept;
+        int close_cry() noexcept;
 #ifdef NETCPP_SSL_AVAILABLE
         int send_ssl(const void *data, size_t len) const noexcept;
         int recv_ssl(void *buf, size_t len, int32_t timeout) const noexcept;
@@ -76,25 +80,6 @@ namespace unet
         /// @brief ソケットクローズ
         /// @return クローズ成功で0、エラー時は-1
         int close_s() noexcept;
-    };
-
-    class Crypt_base : protected net_base
-    {
-    private:
-        Crypt_base() noexcept;
-        ~Crypt_base();
-
-        uint8_t key[32];
-
-    public:
-        static int setkey(Crypt_base &ret);
-        int send(const std::string &data, size_t len = 0) const noexcept;
-        /// @brief 全データ受信 通信終了時まで
-        /// @return 受信データ、エラー時は空文字
-        std::string recv(int32_t timeout = -1) const noexcept;
-        /// @brief ソケットクローズ
-        /// @return クローズ成功で0、エラー時は-1
-        int close() noexcept;
     };
 
     class net_core : public net_base

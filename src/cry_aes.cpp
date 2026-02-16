@@ -45,7 +45,7 @@ namespace unet::cry
         return k;
     }
 
-    int send_cry(int s, const char *buf, int len, int flags)
+    int send_crypt(int s, const char *buf, int len, int flags)
     {
         std::string datar(buf, len);
         cryptASM::AES256 aes(aeskeys[s]);
@@ -61,7 +61,7 @@ namespace unet::cry
         return send(s, datac.c_str(), datac.size(), flags);
     }
 
-    int recv_cry(int s, char *buf, int len, int flags)
+    int recv_crypt(int s, char *buf, int len, int flags)
     {
         if (sockBuffers[s].empty())
         {
@@ -103,7 +103,7 @@ namespace unet::cry
         ======================
     */
 
-    int connect_cry(int s, const struct sockaddr *name, int namelen)
+    int connect_crypt(int s, const struct sockaddr *name, int namelen)
     {
         int r = connect(s, name, namelen);
         if (r < 0)
@@ -154,7 +154,7 @@ namespace unet::cry
         return 0;
     }
 
-    int accept_cry(int s, struct sockaddr *addr, int *addrlen)
+    int accept_crypt(int s, struct sockaddr *addr, int *addrlen)
     {
         int ns = accept(s, addr, addrlen);
         if (ns < 0)
@@ -204,7 +204,7 @@ namespace unet::cry
         return ns;
     }
 
-    int close_cry(int s)
+    int close_crypt(int s)
     {
         int32_t type = (int32_t)cLose;
         send(s, (char *)&type, sizeof(type), 0);
@@ -214,5 +214,34 @@ namespace unet::cry
         rsa_ctx.erase(s);
 
         return close(s);
+    }
+
+    int shutdown_crypt(int s, int how)
+    {
+        /* AES セッションが存在する場合のみ通知 */
+        if (aeskeys.find(s) != aeskeys.end())
+        {
+            /* 送信側 shutdown の時だけ close 通知 */
+            if (how == SD_SEND || how == SD_BOTH)
+            {
+                int32_t type = (int32_t)cLose;
+                send(s, (char *)&type, sizeof(type), 0);
+            }
+
+            /* 受信停止 or 両方停止ならバッファ破棄 */
+            if (how == SD_RECEIVE || how == SD_BOTH)
+            {
+                sockBuffers.erase(s);
+            }
+
+            /* 両方向停止なら鍵も破棄 */
+            if (how == SD_BOTH)
+            {
+                aeskeys.erase(s);
+                rsa_ctx.erase(s);
+            }
+        }
+
+        return shutdown(s, how);
     }
 }
