@@ -109,7 +109,7 @@ void udp_thread()
 int main()
 {
     constexpr int test_delay = 1;
-    constexpr int server_delay = 5;
+    constexpr int server_delay = 1;
 
     static uint32_t results = 0;
 
@@ -388,17 +388,17 @@ int main()
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
     std::cout << "---- Finished ----" << "\n";
+    bool allGreen = true;
     for (size_t i = 0; i < result.size(); i++)
     {
-        if (result[i].second == unet::success)
+        if (result[i].second != unet::success)
         {
-            std::cout << console::colors::green << result[i].first << console::reset << "  Success" << std::endl;
-        }
-        else
-        {
+            allGreen = false;
             std::cout << console::colors::red << result[i].first << console::reset << "  Faild" << std::endl;
         }
     }
+    if (allGreen)
+        std::cout << console::colors::blue << "All tests passed" << console::reset << std::endl;
     std::cout << console::colors::green << std::bitset<10>(results) << console::reset << std::endl;
     std::cout << unet::ip2str(unet::getipaddrinfo("localhost", 80)) << std::endl;
     unet::netcpp_stop();
