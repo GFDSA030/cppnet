@@ -63,6 +63,14 @@ namespace unet
         }
         return success;
     }
+    IPaddress getipaddr(const char *addr_) noexcept
+    {
+        IPaddress addr;
+        if (getipaddr(addr_, addr) == success)
+            return addr;
+        else
+            return {};
+    }
 
     int getipaddrinfo(const char *addr_, int port_, IPaddress &ret, sock_type type_) noexcept
     {
@@ -118,6 +126,14 @@ namespace unet
 
         freeaddrinfo(res);
         return success;
+    }
+    IPaddress getipaddrinfo(const char *addr_, int port_, sock_type type_) noexcept
+    {
+        IPaddress addr;
+        if (getipaddrinfo(addr_, port_, addr, type_) == success)
+            return addr;
+        else
+            return {};
     }
     std::string ip2str(const IPaddress &addr) noexcept
     {

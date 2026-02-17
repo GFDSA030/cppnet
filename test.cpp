@@ -400,7 +400,7 @@ int main()
         }
     }
     std::cout << console::colors::green << std::bitset<10>(results) << console::reset << std::endl;
-
+    std::cout << unet::ip2str(unet::getipaddrinfo("localhost", 80)) << std::endl;
     unet::netcpp_stop();
     return 0;
 }

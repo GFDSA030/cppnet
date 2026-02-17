@@ -10,7 +10,9 @@ namespace unet
     int netcpp_start() noexcept;
     int netcpp_stop() noexcept;
     int getipaddr(const char *addr_, IPaddress &ret) noexcept;
+    IPaddress getipaddr(const char *addr_) noexcept;
     int getipaddrinfo(const char *addr_, int port_, IPaddress &ret, sock_type type_ = TCP_c) noexcept;
+    IPaddress getipaddrinfo(const char *addr_, int port_, sock_type type_ = TCP_c) noexcept;
     std::string ip2str(const IPaddress &addr) noexcept;
     class net_base
     {
