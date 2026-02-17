@@ -46,6 +46,7 @@ namespace unet
     void netinit() noexcept;
     void netquit() noexcept;
     int netcpp_setstatus(status s) noexcept;
+    int Def_connect(int &sock, sock_type &type, status &this_status, int &port, IPaddress &addr, const char *addr_, SSL *ssl, SSL_CTX *ctx) noexcept;
     class infnc
     {
     private:

@@ -86,4 +86,100 @@ namespace unet
     }
     infnc net;
 
+    int Def_connect(int &sock, sock_type &type, status &this_status, int &port, IPaddress &addr, const char *addr_, SSL *ssl, SSL_CTX *ctx) noexcept
+    {
+        if (getipaddrinfo(addr_, port, addr, type) != success)
+        {
+            perror("getipaddrinfo failed");
+            this_status = offline;
+            return error;
+        }
+
+        sock = socket(addr.ss_family, SOCK_STREAM, 0);
+        if (sock < 0)
+        {
+            perror("socket() failed");
+            this_status = offline;
+            return error;
+        }
+#ifndef NETCPP_BLOCKING
+        u_long val = 1;
+        ioctl(sock, FIONBIO, &val);
+#endif // NETCPP_BLOCKING
+        switch (type)
+        {
+        case TCP_c:
+        {
+            if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+            {
+                perror("connect() failed");
+                close(sock);
+                this_status = offline;
+                return error;
+            }
+        }
+        break;
+        case CRY_c:
+        {
+            if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+            {
+                perror("connect() failed");
+                close(sock);
+                this_status = offline;
+                return error;
+            }
+        }
+
+        break;
+        case SSL_c:
+        {
+            if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+            {
+                perror("connect() failed");
+                close(sock);
+                this_status = offline;
+                return error;
+            }
+#ifdef NETCPP_SSL_AVAILABLE
+            if (type == SSL_c)
+            {
+                ctx = SSL_CTX_new(TLS_client_method());
+                if (!ctx)
+                {
+                    perror("SSL_CTX_new failed");
+                    close(sock);
+                    this_status = offline;
+                    return error;
+                }
+                ssl = SSL_new(ctx);
+                // SNIを設定
+                SSL_set_tlsext_host_name(ssl, addr_);
+
+                SSL_set_fd(ssl, sock);
+                if (SSL_connect(ssl) <= 0)
+                {
+                    perror("SSL_connect failed");
+                    ERR_print_errors_fp(stderr);
+                    SSL_free(ssl);
+                    ssl = nullptr;
+                    SSL_CTX_free(ctx);
+                    ctx = nullptr;
+                    close(sock);
+                    this_status = offline;
+                    return error;
+                }
+            }
+#else
+            if (type_ == SSL_c)
+                fprintf(stderr, "ssl isn't avilable\n");
+#endif // NETCPP_SSL_AVAILABLE
+        }
+        break;
+
+        default:
+            break;
+        }
+        return success;
+    }
+
 } // namespace unet
