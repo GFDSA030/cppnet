@@ -124,7 +124,7 @@ namespace unet
             if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
             {
                 perror("connect() failed");
-                close(sock);
+                cry::close_crypt(sock);
                 this_status = offline;
                 return error;
             }

@@ -237,7 +237,7 @@ namespace unet
             len = data.size();
         if (len == 0)
             return 0;
-        return send_m(data.c_str(), len);
+        return send_data(data.c_str(), len);
     }
     int net_base::recv_data(std::string &buf, size_t len, int32_t timeout) const noexcept
     {
@@ -245,7 +245,7 @@ namespace unet
             return 0;
         char *buffer = new char[len];
         memset(buffer, 0, len);
-        int ret = recv_m(buffer, len, timeout);
+        int ret = recv_data(buffer, len, timeout);
         if (ret > 0)
         {
             buf.assign(buffer, ret);
