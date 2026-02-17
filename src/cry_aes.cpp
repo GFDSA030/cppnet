@@ -2,6 +2,7 @@
 #include "rsa.h"
 #include "aes.h"
 #include "conv.h"
+#include "infnc.h"
 
 #include <unordered_map>
 #include <vector>
@@ -156,7 +157,7 @@ namespace unet::cry
 
     int accept_crypt(int s, struct sockaddr *addr, int *addrlen)
     {
-        int ns = accept(s, addr, addrlen);
+        int ns = accept(s, addr, (socklen_t *)addrlen);
         if (ns < 0)
             return ns;
 
@@ -222,20 +223,20 @@ namespace unet::cry
         if (aeskeys.find(s) != aeskeys.end())
         {
             /* 送信側 shutdown の時だけ close 通知 */
-            if (how == SD_SEND || how == SD_BOTH)
+            if (how == SHUT_SD || how == SHUT_RW)
             {
                 int32_t type = (int32_t)cLose;
                 send(s, (char *)&type, sizeof(type), 0);
             }
 
             /* 受信停止 or 両方停止ならバッファ破棄 */
-            if (how == SD_RECEIVE || how == SD_BOTH)
+            if (how == SHUT_RC || how == SHUT_RW)
             {
                 sockBuffers.erase(s);
             }
 
             /* 両方向停止なら鍵も破棄 */
-            if (how == SD_BOTH)
+            if (how == SHUT_RW)
             {
                 aeskeys.erase(s);
                 rsa_ctx.erase(s);

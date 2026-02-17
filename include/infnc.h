@@ -39,6 +39,8 @@ namespace unet
 
 #endif // OS
 
+#define SHUT_RC 0
+#define SHUT_SD 1
 #define SHUT_RW 2
 
 namespace unet
