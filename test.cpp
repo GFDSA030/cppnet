@@ -108,10 +108,12 @@ void udp_thread()
 }
 int main()
 {
-    constexpr int test_delay = 50;
-    constexpr int server_delay = 100;
+    constexpr int test_delay = 1;
+    constexpr int server_delay = 5;
 
     static uint32_t results = 0;
+
+    std::vector<std::pair<std::string, int>> result;
 
     unet::netcpp_start();
     do
@@ -125,7 +127,10 @@ int main()
         addrinfo *res;
         int status = getaddrinfo("example.com", NULL, &hints, &res);
         if (status != 0)
+        {
+            result.push_back({"---- getaddrinfo To:[example.com] ----", unet::error});
             break;
+        }
         for (addrinfo *p = res; p != nullptr; p = p->ai_next)
         {
             // char ipstr[INET_ADDRSTRLEN];
@@ -146,6 +151,7 @@ int main()
         }
         freeaddrinfo(res);
         results |= 1 << 0;
+        result.push_back({"---- getaddrinfo To:[example.com] ----", unet::success});
     } while (0);
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
@@ -172,10 +178,12 @@ int main()
             }
             close(sock);
             results |= 1 << 1;
+            result.push_back({"---- getipaddrinfo To:[example.com] ----", unet::success});
         }
         else
         {
             std::cout << "getipaddrinfo error" << "\n";
+            result.push_back({"---- getipaddrinfo To:[example.com] ----", unet::error});
         }
         std::cout << console::colors::reset;
     }
@@ -190,7 +198,14 @@ int main()
         std::cout << console::colors::green << unet::http::extract_http_header(response) << console::colors::reset << "\n";
         client.close_s();
         if (response.starts_with("HTTP/1.1 200 OK"))
+        {
+            result.push_back({"---- Client SSL_c To:[example.com] ----", unet::success});
             results |= 1 << 2;
+        }
+        else
+        {
+            result.push_back({"---- Client SSL_c To:[example.com] ----", unet::error});
+        }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
@@ -206,7 +221,14 @@ int main()
         client.close_s();
         std::cout << console::colors::green << response << console::colors::reset << "\n";
         if (response.starts_with("HTTP/1.1 200 OK"))
+        {
+            result.push_back({"---- Server TCP_c To:[::1] ----", unet::success});
             results |= 1 << 3;
+        }
+        else
+        {
+            result.push_back({"---- Server TCP_c To:[::1] ----", unet::error});
+        }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
@@ -222,7 +244,14 @@ int main()
         client.close_s();
         std::cout << console::colors::green << response << console::colors::reset << "\n";
         if (response.starts_with("HTTP/1.1 200 OK"))
+        {
+            result.push_back({"---- Server SSL_c To:[::1] ----", unet::success});
             results |= 1 << 4;
+        }
+        else
+        {
+            result.push_back({"---- Server SSL_c To:[::1] ----", unet::error});
+        }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
@@ -236,7 +265,14 @@ int main()
         sv.close_s();
         std::cout << console::colors::blue << response << console::colors::reset << "\n";
         if (response.starts_with("HTTP/1.1 200 OK"))
+        {
+            result.push_back({"---- Standby Client TCP_c To:[::1] ----", unet::success});
             results |= 1 << 5;
+        }
+        else
+        {
+            result.push_back({"---- Standby Client TCP_c To:[::1] ----", unet::error});
+        }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
@@ -250,7 +286,14 @@ int main()
         sv.close_s();
         std::cout << console::colors::blue << response << console::colors::reset << "\n";
         if (response.starts_with("HTTP/1.1 200 OK"))
+        {
+            result.push_back({"---- Standby Client SSL_c To:[::1] ----", unet::success});
             results |= 1 << 6;
+        }
+        else
+        {
+            result.push_back({"---- Standby Client SSL_c To:[::1] ----", unet::error});
+        }
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
@@ -270,7 +313,14 @@ int main()
         }
         th.join();
         if (std::string(udp_buf).starts_with("Hello via UDP"))
+        {
+            result.push_back({"---- UDP To:[::1] ----", unet::success});
             results |= 1 << 7;
+        }
+        else
+        {
+            result.push_back({"---- UDP To:[::1] ----", unet::error});
+        }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
     { // Standby Server TCP_c
@@ -283,6 +333,7 @@ int main()
         if (connect_result != unet::success)
         {
             std::cout << console::colors::red << "connect_s failed" << console::colors::reset << "\n";
+            result.push_back({"---- Standby Server TCP_c To:[::1] ----", unet::error});
         }
         else
         {
@@ -291,7 +342,14 @@ int main()
             sv.close_s();
             std::cout << console::colors::blue << response << console::colors::reset << "\n";
             if (response.starts_with("HTTP/1.1 200 OK"))
+            {
+                result.push_back({"---- Standby Server TCP_c To:[::1] ----", unet::success});
                 results |= 1 << 8;
+            }
+            else
+            {
+                result.push_back({"---- Standby Server TCP_c To:[::1] ----", unet::error});
+            }
         }
         th.join();
     }
@@ -307,6 +365,7 @@ int main()
         if (connect_result != unet::success)
         {
             std::cout << console::colors::red << "connect_s failed" << console::colors::reset << "\n";
+            result.push_back({"---- Standby Server SSL_c To:[::1] ----", unet::error});
         }
         else
         {
@@ -315,14 +374,33 @@ int main()
             sv_ssl.close_s();
             std::cout << console::colors::blue << response << console::colors::reset << "\n";
             if (response.starts_with("HTTP/1.1 200 OK"))
+            {
+                result.push_back({"---- Standby Server SSL_c To:[::1] ----", unet::success});
                 results |= 1 << 9;
+            }
+            else
+            {
+                result.push_back({"---- Standby Server SSL_c To:[::1] ----", unet::error});
+            }
         }
         th.join();
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
 
     std::cout << "---- Finished ----" << "\n";
-    std::cout << console::colors::green << std::bitset<10>(results) << console::reset;
+    for (size_t i = 0; i < result.size(); i++)
+    {
+        if (result[i].second == unet::success)
+        {
+            std::cout << console::colors::green << result[i].first << console::reset << "  Success" << std::endl;
+        }
+        else
+        {
+            std::cout << console::colors::red << result[i].first << console::reset << "  Faild" << std::endl;
+        }
+    }
+    std::cout << console::colors::green << std::bitset<10>(results) << console::reset << std::endl;
+
     unet::netcpp_stop();
     return 0;
 }

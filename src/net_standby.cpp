@@ -154,96 +154,98 @@ namespace unet
     int Standby::connect_s(const char *addr_) noexcept
     {
         close_s();
-        // getipaddrinfo expects (addr, port, ret, type)
-        if (getipaddrinfo(addr_, port, addr, type) != success)
-        {
-            fprintf(stderr, "getipaddrinfo failed\n");
-            return error;
-        }
+        if (Def_connect(sock, type, this_status, port, addr, addr_, ssl, ctx) != success)
+            this_status = offline;
+//         // getipaddrinfo expects (addr, port, ret, type)
+//         if (getipaddrinfo(addr_, port, addr, type) != success)
+//         {
+//             fprintf(stderr, "getipaddrinfo failed\n");
+//             return error;
+//         }
 
-        sock = socket(addr.ss_family, SOCK_STREAM, 0);
-        if (sock < 0)
-        {
-            perror("socket() failed");
-            return error;
-        }
-#ifndef NETCPP_BLOCKING
-        u_long val = 1;
-        ioctl(sock, FIONBIO, &val);
-#endif // NETCPP_BLOCKING
-        switch (type)
-        {
-        case TCP_c:
-        {
-            if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-            {
-                perror("connect() failed");
-                close(sock);
-                this_status = offline;
-                return error;
-            }
-        }
-        break;
-        case CRY_c:
-        {
-            if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-            {
-                perror("connect() failed");
-                close(sock);
-                this_status = offline;
-                return error;
-            }
-        }
+//         sock = socket(addr.ss_family, SOCK_STREAM, 0);
+//         if (sock < 0)
+//         {
+//             perror("socket() failed");
+//             return error;
+//         }
+// #ifndef NETCPP_BLOCKING
+//         u_long val = 1;
+//         ioctl(sock, FIONBIO, &val);
+// #endif // NETCPP_BLOCKING
+//         switch (type)
+//         {
+//         case TCP_c:
+//         {
+//             if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+//             {
+//                 perror("connect() failed");
+//                 close(sock);
+//                 this_status = offline;
+//                 return error;
+//             }
+//         }
+//         break;
+//         case CRY_c:
+//         {
+//             if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+//             {
+//                 perror("connect() failed");
+//                 close(sock);
+//                 this_status = offline;
+//                 return error;
+//             }
+//         }
 
-        break;
-        case SSL_c:
-        {
-            if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-            {
-                perror("connect() failed");
-                close(sock);
-                this_status = offline;
-                return error;
-            }
-#ifdef NETCPP_SSL_AVAILABLE
-            if (type == SSL_c)
-            {
-                ctx = SSL_CTX_new(TLS_client_method());
-                if (!ctx)
-                {
-                    perror("SSL_CTX_new failed");
-                    close(sock);
-                    this_status = offline;
-                    return error;
-                }
-                ssl = SSL_new(ctx);
-                // SNIを設定
-                SSL_set_tlsext_host_name(ssl, addr_);
+//         break;
+//         case SSL_c:
+//         {
+//             if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+//             {
+//                 perror("connect() failed");
+//                 close(sock);
+//                 this_status = offline;
+//                 return error;
+//             }
+// #ifdef NETCPP_SSL_AVAILABLE
+//             if (type == SSL_c)
+//             {
+//                 ctx = SSL_CTX_new(TLS_client_method());
+//                 if (!ctx)
+//                 {
+//                     perror("SSL_CTX_new failed");
+//                     close(sock);
+//                     this_status = offline;
+//                     return error;
+//                 }
+//                 ssl = SSL_new(ctx);
+//                 // SNIを設定
+//                 SSL_set_tlsext_host_name(ssl, addr_);
 
-                SSL_set_fd(ssl, sock);
-                if (SSL_connect(ssl) <= 0)
-                {
-                    perror("SSL_connect failed");
-                    ERR_print_errors_fp(stderr);
-                    SSL_free(ssl);
-                    ssl = nullptr;
-                    SSL_CTX_free(ctx);
-                    ctx = nullptr;
-                    close(sock);
-                    this_status = offline;
-                    return error;
-                }
-            }
-#else
-        if (type_ == SSL_c)
-            fprintf(stderr, "ssl isn't avilable\n");
-#endif // NETCPP_SSL_AVAILABLE
-        }
-        break;
+//                 SSL_set_fd(ssl, sock);
+//                 if (SSL_connect(ssl) <= 0)
+//                 {
+//                     perror("SSL_connect failed");
+//                     ERR_print_errors_fp(stderr);
+//                     SSL_free(ssl);
+//                     ssl = nullptr;
+//                     SSL_CTX_free(ctx);
+//                     ctx = nullptr;
+//                     close(sock);
+//                     this_status = offline;
+//                     return error;
+//                 }
+//             }
+// #else
+//         if (type_ == SSL_c)
+//             fprintf(stderr, "ssl isn't avilable\n");
+// #endif // NETCPP_SSL_AVAILABLE
+//         }
+//         break;
 
-        default:
-            break;
-        }
+//         default:
+//             break;
+//         }
         this_status = online;
         return success;
     }

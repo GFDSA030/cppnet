@@ -86,7 +86,7 @@ namespace unet
     }
     infnc net;
 
-    int Def_connect(int &sock, sock_type &type, status &this_status, int &port, IPaddress &addr, const char *addr_, SSL *ssl, SSL_CTX *ctx) noexcept
+    int Def_connect(int &sock, sock_type &type, status &this_status, int &port, IPaddress &addr, const char *addr_, SSL *&ssl, SSL_CTX *&ctx) noexcept
     {
         if (getipaddrinfo(addr_, port, addr, type) != success)
         {
