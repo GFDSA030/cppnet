@@ -2,7 +2,6 @@
 #include "rsa.h"
 #include "aes.h"
 #include "conv.h"
-#include "infnc.h"
 
 #include <unordered_map>
 #include <vector>
