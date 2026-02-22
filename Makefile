@@ -17,9 +17,10 @@ endif
 TARGETS2 = $(patsubst src/%.cpp, build/%.o, $(wildcard src/*.cpp))
 DEPCODE = $(patsubst depcode/%.cpp, build/%.o, $(wildcard depcode/*.cpp))
 
-all: main.out test2.out
+all: main.out test2.out test.out
 
 main.out: build/main.o libunet.a libfragdeps.a
+test.out: build/test.o libunet.a libfragdeps.a
 test2.out: build/test2.o libunet.a libfragdeps.a
 udp.out: build/udptest.o libunet.a libfragdeps.a
 
@@ -31,7 +32,10 @@ build/main.o: main.cpp
 build/test_main.o: test_main.cpp
 	@mkdir -p build
 	$(CC) $< -c -o $@ $(CFLAG)
-build/test2.o: test.cpp
+build/test.o: test.cpp
+	@mkdir -p build
+	$(CC) $< -c -o $@ $(CFLAG)
+build/test2.o: test2.cpp
 	@mkdir -p build
 	$(CC) $< -c -o $@ $(CFLAG)
 build/udptest.o: udptest.cpp
