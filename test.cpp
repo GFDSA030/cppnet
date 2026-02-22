@@ -109,7 +109,7 @@ void udp_thread()
 int main()
 {
     constexpr int test_delay = 1;
-    constexpr int server_delay = 1;
+    constexpr int server_delay = 150;
 
     static uint32_t results = 0;
 
@@ -325,10 +325,10 @@ int main()
     std::this_thread::sleep_for(std::chrono::milliseconds(test_delay));
     { // Standby Server TCP_c
         std::cout << "---- Standby Server TCP_c To:[::1] ----" << "\n";
-        std::thread th(Standby_thread, unet::sock_type::TCP_c, 9090);
+        std::thread th(Standby_thread, unet::sock_type::TCP_c, 18120);
         std::this_thread::sleep_for(std::chrono::milliseconds(server_delay)); // サーバーの完全な起動待機
-        unet::Standby sv(9090, unet::sock_type::TCP_c);
-        sv.set(9090, unet::sock_type::TCP_c);
+        unet::Standby sv(18120, unet::sock_type::TCP_c);
+        sv.set(18120, unet::sock_type::TCP_c);
         int connect_result = sv.connect_s("::1");
         if (connect_result != unet::success)
         {
@@ -357,10 +357,10 @@ int main()
 
     { // Standby Server SSL_c
         std::cout << "---- Standby Server SSL_c To:[::1] ----" << "\n";
-        std::thread th(Standby_thread, unet::sock_type::SSL_c, 7070);
+        std::thread th(Standby_thread, unet::sock_type::SSL_c, 18121);
         std::this_thread::sleep_for(std::chrono::milliseconds(server_delay)); // サーバーの完全な起動待機
-        unet::Standby sv_ssl(7070, unet::sock_type::SSL_c);
-        sv_ssl.set(7070, unet::sock_type::SSL_c);
+        unet::Standby sv_ssl(18121, unet::sock_type::SSL_c);
+        sv_ssl.set(18121, unet::sock_type::SSL_c);
         int connect_result = sv_ssl.connect_s("::1");
         if (connect_result != unet::success)
         {
