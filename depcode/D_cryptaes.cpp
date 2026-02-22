@@ -1,13 +1,13 @@
-#include "cryptaes.h"
-#include "rsa.h"
-#include "aes.h"
-#include "conv.h"
+#include "D_cryptaes.h"
+#include "D_rsa.h"
+#include "D_aes.h"
+#include "D_util.h"
 
 #include <unordered_map>
 #include <vector>
 #include <random>
 
-namespace unet::cry
+namespace fasm::net
 {
     enum message_type : int32_t
     {
@@ -21,7 +21,7 @@ namespace unet::cry
 
     static std::unordered_map<int, aesKey> aeskeys;
     static std::unordered_map<int, std::string> sockBuffers;
-    static std::unordered_map<int, cryptASM::RSA> rsa_ctx;
+    static std::unordered_map<int, crypt::RSA> rsa_ctx;
 
     static bool recv_all(int s, char *buf, int len, int flags)
     {
@@ -48,8 +48,8 @@ namespace unet::cry
     int send_crypt(int s, const char *buf, int len, int flags)
     {
         std::string datar(buf, len);
-        cryptASM::AES256 aes(aeskeys[s]);
-        std::string datac = vec2str(aes.encrypt(str2vec(datar)));
+        crypt::AES256 aes(aeskeys[s]);
+        std::string datac = util::vec2str(aes.encrypt(util::str2vec(datar)));
 
         size_t datac_size = datac.size();
         int32_t data_type = (int32_t)rData;
@@ -82,8 +82,8 @@ namespace unet::cry
             if (!recv_all(s, enc.data(), (int)enc_size, flags))
                 return -1;
 
-            cryptASM::AES256 aes(aeskeys[s]);
-            std::string dec = vec2str(aes.decrypt(str2vec(enc)));
+            crypt::AES256 aes(aeskeys[s]);
+            std::string dec = util::vec2str(aes.decrypt(util::str2vec(enc)));
 
             sockBuffers[s] += dec;
         }
@@ -112,7 +112,7 @@ namespace unet::cry
         sockBuffers[s] = "";
 
         /* 1. RSA key generate */
-        cryptASM::RSA rsa;
+        crypt::RSA rsa;
         rsa.generate_keys();
         rsa_ctx[s] = rsa;
 
@@ -179,7 +179,7 @@ namespace unet::cry
         if (!recv_all(ns, pub.data(), (int)pub_size, 0))
             return -1;
 
-        cryptASM::RSA rsa_pub;
+        crypt::RSA rsa_pub;
         rsa_pub.import_public_key_pem(pub);
 
         /* 3. generate AES session key */

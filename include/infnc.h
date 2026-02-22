@@ -2,7 +2,7 @@
 
 #include <base.h>
 #include <thread>
-#include "cryptaes.h"
+#include "D_cryptaes.h"
 
 #if defined(__MINGW32__) // OS
 

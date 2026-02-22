@@ -3,7 +3,7 @@
 #include <vector>
 #include <cstdint>
 
-namespace cryptASM
+namespace fasm::inline crypt
 {
     class AES128
     {

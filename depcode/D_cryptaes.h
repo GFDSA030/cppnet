@@ -48,7 +48,7 @@
 #define SHUT_RW 2
 #endif
 
-namespace unet::cry
+namespace fasm::inline net
 {
     int send_crypt(int s, const char *buf, int len, int flags);
     int recv_crypt(int s, char *buf, int len, int flags);
@@ -56,4 +56,8 @@ namespace unet::cry
     int connect_crypt(int s, const struct sockaddr *name, int namelen);
     int close_crypt(int s);
     int shutdown_crypt(int s, int how);
+}
+namespace unet
+{
+    namespace cry = fasm::net;
 }

@@ -2,11 +2,12 @@
 #include <vector>
 #include <cstdint>
 #include <string>
+#if __has_include("boost/multiprecision/cpp_int.hpp")
 #include <boost/multiprecision/cpp_int.hpp>
 
 using boost::multiprecision::cpp_int;
 
-namespace cryptASM
+namespace fasm::inline crypt
 {
     class ECDSA
     {
@@ -104,3 +105,4 @@ namespace cryptASM
         static std::vector<uint8_t> pem_to_der(const std::string &pem);
     };
 } // namespace cryptASM
+#endif

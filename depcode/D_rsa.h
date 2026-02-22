@@ -2,10 +2,11 @@
 #include <vector>
 #include <cstdint>
 #include <string>
+#if __has_include("boost/multiprecision/cpp_int.hpp")
 #include <boost/multiprecision/cpp_int.hpp>
 
 using boost::multiprecision::cpp_int;
-namespace cryptASM
+namespace fasm::inline crypt
 {
     class RSA
     {
@@ -87,3 +88,4 @@ namespace cryptASM
         static cpp_int read_asn1_int(const std::vector<uint8_t> &der, size_t &pos);
     };
 }
+#endif

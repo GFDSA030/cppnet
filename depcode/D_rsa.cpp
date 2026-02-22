@@ -1,12 +1,13 @@
-#include "rsa.h"
+#include "D_rsa.h"
 
-#include "sha.h"
-#include "baseN.h"
+#include "D_sha.h"
+#include "D_baseN.h"
 
 #include <random>
 #include <stdexcept>
 
-namespace cryptASM
+#if __has_include("boost/multiprecision/cpp_int.hpp")
+namespace fasm::crypt
 {
     // Encrypt / Decrypt
     std::vector<uint8_t> RSA::encrypt(const std::vector<uint8_t> &msg) const
@@ -241,7 +242,7 @@ namespace cryptASM
     std::vector<uint8_t> RSA::sha256_bytes(const std::vector<uint8_t> &in)
     {
         std::string s(in.begin(), in.end());
-        std::string hex = SHA256::str256(s);
+        std::string hex = hash::SHA256::str256(s);
         std::vector<uint8_t> out;
         for (size_t i = 0; i < hex.size(); i += 2)
             out.push_back(std::stoi(hex.substr(i, 2), nullptr, 16));
@@ -384,7 +385,7 @@ namespace cryptASM
     std::string RSA::base64_encode_vec(const std::vector<uint8_t> &in)
     {
         std::string str(in.begin(), in.end());
-        return base64_encode(str, str.size());
+        return enc::base64_encode(str, str.size());
     }
 
     // --- PEM -> DER (robust): remove header/footer lines and join base64 lines ---
@@ -405,7 +406,7 @@ namespace cryptASM
                 if (!std::isspace((unsigned char)c))
                     b64.push_back(c);
         }
-        std::string decoded = base64_decode(b64, b64.size()); // baseN.h の関数を利用
+        std::string decoded = enc::base64_decode(b64, b64.size()); // baseN.h の関数を利用
         return std::vector<uint8_t>(decoded.begin(), decoded.end());
     }
 
@@ -469,3 +470,4 @@ namespace cryptASM
         return out;
     }
 }
+#endif

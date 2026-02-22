@@ -1,12 +1,13 @@
-#include "ecdsa.h"
+#include "D_ecdsa.h"
 
-#include "sha.h"
-#include "baseN.h"
+#include "D_sha.h"
+#include "D_baseN.h"
 
 #include <random>
 #include <stdexcept>
 
-namespace cryptASM
+#if __has_include("boost/multiprecision/cpp_int.hpp")
+namespace fasm::crypt
 {
     ECDSA::ECDSA()
     {
@@ -144,7 +145,7 @@ namespace cryptASM
         auto seq = asn1_seq(concat({alg, spk}));
 
         std::string der(seq.begin(), seq.end());
-        std::string b64 = base64_encode(der, der.size());
+        std::string b64 = enc::base64_encode(der, der.size());
 
         return "-----BEGIN PUBLIC KEY-----\n" + b64 +
                "\n-----END PUBLIC KEY-----";
@@ -173,85 +174,11 @@ namespace cryptASM
         auto seq = asn1_seq(concat(body));
 
         std::string der(seq.begin(), seq.end());
-        std::string b64 = base64_encode(der, der.size());
+        std::string b64 = enc::base64_encode(der, der.size());
 
         return "-----BEGIN EC PRIVATE KEY-----\n" + b64 +
                "\n-----END EC PRIVATE KEY-----";
     }
-
-    // void cryptASM::ECDSA::import_private_key_pem(const std::string &pem)
-    // {
-    //     // PEM → DER
-    //     std::string b64;
-    //     for (const auto &line : split_lines(pem))
-    //     {
-    //         if (line.find("-----") != std::string::npos)
-    //             continue;
-    //         b64 += line;
-    //     }
-
-    //     std::string der_str = base64_decode(b64, b64.size());
-
-    //     std::vector<uint8_t> der(der_str.begin(), der_str.end());
-
-    //     size_t pos = 0;
-
-    //     // SEQUENCE
-    //     if (pos >= der.size() || der[pos++] != 0x30)
-    //         throw std::runtime_error("invalid ECDSA private key (no SEQUENCE)");
-
-    //     size_t seqlen = read_asn1_len_from(der, pos);
-    //     if (pos + seqlen > der.size())
-    //         throw std::runtime_error("invalid ECDSA private key length");
-
-    //     cpp_int version = read_asn1_int(der, pos);
-    //     if (version != 1)
-    //         throw std::runtime_error("unsupported ECDSA private key version");
-
-    //     d = read_asn1_int(der, pos);
-    //     Qx = read_asn1_int(der, pos);
-    //     Qy = read_asn1_int(der, pos);
-
-    //     // sanity check
-    //     if (d <= 0 || d >= n)
-    //         throw std::runtime_error("invalid private key scalar");
-
-    //     ECPoint Q{Qx, Qy, false};
-    //     if (!is_on_curve(Q))
-    //         throw std::runtime_error("public key not on curve");
-    // }
-
-    // void cryptASM::ECDSA::import_public_key_pem(const std::string &pem)
-    // {
-    //     std::string b64;
-    //     for (const auto &line : split_lines(pem))
-    //     {
-    //         if (line.find("-----") != std::string::npos)
-    //             continue;
-    //         b64 += line;
-    //     }
-
-    //     std::string der_str = base64_decode(b64, b64.size());
-
-    //     std::vector<uint8_t> der(der_str.begin(), der_str.end());
-
-    //     size_t pos = 0;
-
-    //     // SEQUENCE
-    //     if (pos >= der.size() || der[pos++] != 0x30)
-    //         throw std::runtime_error("invalid ECDSA public key (no SEQUENCE)");
-
-    //     size_t seqlen = read_asn1_len_from(der, pos);
-    //     if (pos + seqlen > der.size())
-    //         throw std::runtime_error("invalid ECDSA public key length");
-
-    //     Qx = read_asn1_int(der, pos);
-    //     Qy = read_asn1_int(der, pos);
-
-    //     ECPoint Q{Qx, Qy, false};
-    //     if (!is_on_curve(Q))
-    //         throw std::runtime_error("public key not on curve");
-    // }
 
     void ECDSA::import_private_key_pem(const std::string &pem)
     {
@@ -488,7 +415,7 @@ namespace cryptASM
     cpp_int ECDSA::hash_to_int(const std::vector<uint8_t> &msg) const
     {
         std::string s(msg.begin(), msg.end());
-        std::string h = SHA256::hash256(s); // 生バイト列である前提
+        std::string h = hash::SHA256::hash256(s); // 生バイト列である前提
         // h.size() == 32 を想定
         cpp_int z = 0;
         for (unsigned char c : h)
@@ -775,8 +702,9 @@ namespace cryptASM
         if (b64.empty())
             throw std::runtime_error("pem_to_der: no base64 data");
 
-        std::string decoded = base64_decode(b64, b64.size());
+        std::string decoded = enc::base64_decode(b64, b64.size());
 
         return std::vector<uint8_t>(decoded.begin(), decoded.end());
     }
 } // namespace cryptASM
+#endif
