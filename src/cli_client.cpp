@@ -11,7 +11,10 @@ namespace unet
         type = type_;
         int port = (port_ == -1) ? (int)type_ : port_;
         if (Def_connect(sock, type, this_status, port, addr, addr_, ssl, ctx) != success)
+        {
             this_status = offline;
+            return;
+        }
         this_status = online;
     }
 
@@ -22,7 +25,10 @@ namespace unet
         type = type_;
         int port = (port_ == -1) ? (int)type_ : port_;
         if (Def_connect(sock, type, this_status, port, addr, addr_, ssl, ctx) != success)
+        {
             this_status = offline;
+            return error;
+        }
         this_status = online;
         return success;
     }

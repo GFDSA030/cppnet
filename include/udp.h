@@ -13,9 +13,9 @@ namespace unet
     protected:
         int send_m(const IPaddress *addr, const char *buf, int len) const noexcept;
         int recv_m(IPaddress *addr, char *buf, int len, int32_t timeout = -1) const noexcept;
-        mutable int TXsock = 0;
+        mutable int TXsock = -1;
         int TXport = 0;
-        mutable int RXsock = 0;
+        mutable int RXsock = -1;
         int RXport = 0;
 
     public:

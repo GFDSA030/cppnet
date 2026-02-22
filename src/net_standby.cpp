@@ -73,7 +73,7 @@ namespace unet
                 perror("Error: SSL context\n");
                 ERR_print_errors_fp(stderr);
                 close(svScok);
-                svScok = 0;
+                svScok = -1;
                 return error;
             }
             // load crt
@@ -84,7 +84,7 @@ namespace unet
                 SSL_CTX_free(ctx);
                 ctx = nullptr;
                 close(svScok);
-                svScok = 0;
+                svScok = -1;
                 return error;
             }
             // load private key
@@ -95,7 +95,7 @@ namespace unet
                 SSL_CTX_free(ctx);
                 ctx = nullptr;
                 close(svScok);
-                svScok = 0;
+                svScok = -1;
                 return error;
             }
 
@@ -103,7 +103,7 @@ namespace unet
         // SSL not available
         fprintf(stderr, "ssl isn't avilable\n");
         close(svScok);
-        svScok = 0;
+        svScok = -1;
         return error;
 #endif
         }
@@ -117,7 +117,7 @@ namespace unet
         {
             perror("Error. Cannot accept socket");
             close(svScok);
-            svScok = 0;
+            svScok = -1;
             return error;
         }
 #ifndef NETCPP_BLOCKING
@@ -132,7 +132,7 @@ namespace unet
             {
                 perror("SSL_new");
                 close(sock);
-                sock = 0;
+                sock = -1;
                 return error;
             }
             SSL_set_fd(ssl, sock);
@@ -143,7 +143,7 @@ namespace unet
                 SSL_free(ssl);
                 ssl = nullptr;
                 close(sock);
-                sock = 0;
+                sock = -1;
                 return error;
             }
         }
@@ -155,7 +155,10 @@ namespace unet
     {
         close_s();
         if (Def_connect(sock, type, this_status, port, addr, addr_, ssl, ctx) != success)
+        {
             this_status = offline;
+            return error;
+        }
         this_status = online;
         return success;
     }
@@ -166,11 +169,11 @@ namespace unet
     int Standby::close_s() noexcept
     {
         close_m();
-        if (svScok > 0)
+        if (svScok >= 0)
         {
             shutdown(svScok, SHUT_RW);
             close(svScok);
-            svScok = 0;
+            svScok = -1;
         }
         this_status = offline;
         return success;

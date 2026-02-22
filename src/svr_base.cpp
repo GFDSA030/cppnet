@@ -15,11 +15,11 @@ namespace unet
             ctx = nullptr;
         }
 #endif
-        if (sock > 0)
+        if (sock >= 0)
         {
             shutdown(sock, SHUT_RW);
             close(sock);
-            sock = 0;
+            sock = -1;
         }
         netcpp_stop();
     };
@@ -33,11 +33,11 @@ namespace unet
             ctx = nullptr;
         }
 #endif
-        if (sock > 0)
+        if (sock >= 0)
         {
             shutdown(sock, SHUT_RW);
             close(sock);
-            sock = 0;
+            sock = -1;
         }
         return success;
     }

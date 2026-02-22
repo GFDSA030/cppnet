@@ -19,7 +19,7 @@ namespace unet
 
         static void run_fn(server_base *where, svrCallbackFn fnc_, int socket, const IPaddress cli, sock_type type_, SSL *ssl_, bool thread_, void *Udata) noexcept;
 
-        int sock = 0;
+        int sock = -1;
         IPaddress addr = {};
         svrCallbackFn fnc = nullptr;
         sock_type type = TCP_c;

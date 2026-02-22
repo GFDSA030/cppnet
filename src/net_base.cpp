@@ -47,7 +47,9 @@ namespace unet
             return error;
         this_status = offline;
         shutdown(sock, SHUT_RW);
-        return close(sock);
+        int ret = close(sock);
+        sock = -1;
+        return ret;
     }
 
     int net_base::send_cry(const void *data, size_t len) const noexcept
@@ -92,7 +94,8 @@ namespace unet
             return error;
         this_status = offline;
         cry::shutdown_crypt(sock, SHUT_RW);
-        return cry::close_crypt(sock);
+        int ret = cry::close_crypt(sock);
+        return ret;
     }
 #ifdef NETCPP_SSL_AVAILABLE
     int net_base::send_ssl(const void *data, size_t len) const noexcept
@@ -149,7 +152,8 @@ namespace unet
 
         this_status = offline;
         shutdown(sock, SHUT_RW);
-        return close(sock);
+        int ret = close(sock);
+        return ret;
     }
 #endif
 

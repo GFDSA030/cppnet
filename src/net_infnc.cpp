@@ -96,7 +96,7 @@ namespace unet
         }
 
         sock = socket(addr.ss_family, SOCK_STREAM, 0);
-        if (sock < 0)
+        if (sock <= 0)
         {
             perror("socket() failed");
             this_status = offline;
@@ -114,6 +114,7 @@ namespace unet
             {
                 perror("connect() failed");
                 close(sock);
+                sock = -1;
                 this_status = offline;
                 return error;
             }
@@ -125,6 +126,7 @@ namespace unet
             {
                 perror("connect() failed");
                 cry::close_crypt(sock);
+                sock = -1;
                 this_status = offline;
                 return error;
             }
@@ -137,6 +139,7 @@ namespace unet
             {
                 perror("connect() failed");
                 close(sock);
+                sock = -1;
                 this_status = offline;
                 return error;
             }
@@ -148,6 +151,7 @@ namespace unet
                 {
                     perror("SSL_CTX_new failed");
                     close(sock);
+                    sock = -1;
                     this_status = offline;
                     return error;
                 }
@@ -165,6 +169,7 @@ namespace unet
                     SSL_CTX_free(ctx);
                     ctx = nullptr;
                     close(sock);
+                    sock = -1;
                     this_status = offline;
                     return error;
                 }

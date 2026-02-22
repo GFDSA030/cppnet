@@ -34,7 +34,7 @@ namespace unet
 #endif // NETCPP_SSL_AVAILABLE
 
     protected:
-        int sock = 0;
+        int sock = -1;
         IPaddress addr = {};
         sock_type type = TCP_c;
         status this_status = offline;
@@ -98,7 +98,7 @@ namespace unet
     {
     private:
         int port = 0;
-        int svScok = 0;
+        int svScok = -1;
 
     public:
         Standby(int port_, const sock_type type_ = TCP_c) noexcept;

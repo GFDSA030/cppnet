@@ -17,12 +17,16 @@ namespace unet
         if ((sock = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
         {
             perror("Error. Cannot make socket");
+            close(sock);
+            sock = -1;
             return;
         }
         const int opt = 1;
         if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt)) < 0)
         {
             perror("setsockopt SO_REUSEADDR error");
+            close(sock);
+            sock = -1;
             return;
         }
         int off = 0;
@@ -35,13 +39,15 @@ namespace unet
         if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
         {
             perror("Error. Cannot bind socket");
+            close(sock);
+            sock = -1;
             return;
         }
         if (listen(sock, 25) < 0)
         {
             perror("Error. Cannot listen socket");
             close(sock);
-            sock = 0;
+            sock = -1;
             return;
         }
 
@@ -53,6 +59,10 @@ namespace unet
             {
                 perror("Error: SSL context\n");
                 ERR_print_errors_fp(stderr);
+                SSL_CTX_free(ctx);
+                ctx = nullptr;
+                close(sock);
+                sock = -1;
                 return;
             }
             // load crt
@@ -60,6 +70,10 @@ namespace unet
             {
                 perror("Error: SSL_CTX_use_certificate_file()\n");
                 ERR_print_errors_fp(stderr);
+                SSL_CTX_free(ctx);
+                ctx = nullptr;
+                close(sock);
+                sock = -1;
                 return;
             }
             // load private key
@@ -67,6 +81,10 @@ namespace unet
             {
                 perror("Error: SSL_CTX_use_PrivateKey_file()\n");
                 ERR_print_errors_fp(stderr);
+                SSL_CTX_free(ctx);
+                ctx = nullptr;
+                close(sock);
+                sock = -1;
                 return;
             }
 #else

@@ -10,6 +10,8 @@ namespace unet
         TXsock = socket(addr->ss_family, SOCK_DGRAM, 0);
         if (TXsock < 0)
         {
+            close(TXsock);
+            TXsock = -1;
             perror("udp send socket()");
             return error;
         }
@@ -23,7 +25,7 @@ namespace unet
 
         int ret = sendto(TXsock, buf, len, 0, (struct sockaddr *)addr, addrlen);
         close(TXsock);
-        TXsock = 0;
+        TXsock = -1;
         return ret;
     }
     int udp_core::recv_m(IPaddress *addr, char *buf, int len, int32_t timeout) const noexcept
@@ -64,7 +66,7 @@ namespace unet
         if (RXsock < 0)
         {
             perror("Error. Cannot make RXsock");
-            RXsock = 0;
+            RXsock = -1;
             return;
         }
         int off = 0;
@@ -81,7 +83,7 @@ namespace unet
         {
             perror("bind RXsock failed");
             close(RXsock);
-            RXsock = 0;
+            RXsock = -1;
             return;
         }
 
@@ -98,7 +100,7 @@ namespace unet
         if (RXsock < 0)
         {
             perror("Error. Cannot make RXsock");
-            RXsock = 0;
+            RXsock = -1;
             return;
         }
         int off = 0;
@@ -117,17 +119,17 @@ namespace unet
 
     udp_core::~udp_core()
     {
-        if (TXsock > 0)
+        if (TXsock >= 0)
         {
             shutdown(TXsock, SHUT_RW);
             close(TXsock);
-            TXsock = 0;
+            TXsock = -1;
         }
-        if (RXsock > 0)
+        if (RXsock >= 0)
         {
             shutdown(RXsock, SHUT_RW);
             close(RXsock);
-            RXsock = 0;
+            RXsock = -1;
         }
         udp_no--;
         netcpp_stop();
