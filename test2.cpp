@@ -29,6 +29,21 @@ namespace
         std::function<void()> fn;
     };
 
+    struct NetBaseProbe : public unet::net_base
+    {
+        int expose_set_type(unet::sock_type type_) noexcept { return set_type(type_); }
+        static size_t expose_base_no() noexcept { return get_base_no(); }
+        static size_t expose_base_len() noexcept { return get_base_len(); }
+        size_t expose_this_no() const noexcept { return get_this_no(); }
+    };
+
+    struct UdpCoreProbe : public unet::udp_core
+    {
+        using unet::udp_core::udp_core;
+        int expose_send_m(const unet::IPaddress *addr, const char *buf, int len) const noexcept { return send_m(addr, buf, len); }
+        int expose_recv_m(unet::IPaddress *addr, char *buf, int len, int32_t timeout = -1) const noexcept { return recv_m(addr, buf, len, timeout); }
+    };
+
     void http_ok_callback(unet::net_core &nc, void *)
     {
         char buffer[1024] = {};
@@ -96,6 +111,74 @@ namespace
             expect(ntohs(((sockaddr_in6 *)&resolved)->sin6_port) == 18001, "IPv6 port mismatch");
     }
 
+    void test_net_base_surface()
+    {
+        NetBaseProbe probe;
+        expect(NetBaseProbe::expose_base_no() >= 1, "net_base base_no should be >= 1");
+        expect(NetBaseProbe::expose_base_len() >= 1, "net_base base_len should be >= 1");
+        expect(probe.expose_this_no() >= 1, "net_base this_no should be >= 1");
+
+        auto exercise_type = [&](unet::sock_type t, const char *name)
+        {
+            expect(probe.expose_set_type(t) == unet::success, std::string("net_base set_type(") + name + ") failed");
+            const char one = 'x';
+            expect(probe.send_data(&one, 1) == unet::error, std::string("net_base send_data(") + name + ") on offline should fail");
+            char raw[8] = {};
+            expect(probe.recv_data(raw, sizeof(raw), 1) == unet::error, std::string("net_base recv_data(") + name + ") on offline should fail");
+            expect(probe.close_s() == unet::error, std::string("net_base close_s(") + name + ") on offline should fail");
+        };
+
+        exercise_type(unet::TCP_c, "TCP");
+        exercise_type(unet::CRY_c, "CRY");
+#ifdef NETCPP_SSL_AVAILABLE
+        exercise_type(unet::SSL_c, "SSL");
+#endif
+        expect(probe.expose_set_type(unet::unknown) == unet::error, "net_base set_type(unknown) should fail");
+
+        const char one = 'x';
+        expect(probe.send_data(&one, 0) == unet::error, "net_base send_data(ptr,len=0) should fail");
+
+        std::string s;
+        expect(probe.recv_data(s, 0, 1) == 0, "net_base recv_data(string,len=0) should return 0");
+    }
+
+    void test_net_base_recv_overloads()
+    {
+        constexpr int str_port = 18102;
+        {
+            unet::Server server(str_port, http_ok_callback, unet::TCP_c, "server.crt", "server.key", false);
+            expect(server.listen_p(false) == unet::success, "server listen_p for net_base string recv failed");
+            std::this_thread::sleep_for(150ms);
+
+            unet::Client client;
+            (void)client.connect_s("::1", unet::TCP_c, str_port);
+            const std::string request = unet::http::get_http_request_header("GET", "/", "localhost", "cppnet-test");
+            (void)client.send_data(request);
+            std::string partial;
+            const int n = client.recv_data(partial, 256, 3000);
+            (void)client.close_s();
+            (void)server.stop();
+            expect(n > 0, "net_base recv_data(string) should read bytes");
+        }
+
+        constexpr int raw_port = 18103;
+        {
+            unet::Server server(raw_port, http_ok_callback, unet::TCP_c, "server.crt", "server.key", false);
+            expect(server.listen_p(false) == unet::success, "server listen_p for net_base raw recv failed");
+            std::this_thread::sleep_for(150ms);
+
+            unet::Client client;
+            (void)client.connect_s("::1", unet::TCP_c, raw_port);
+            const std::string request = unet::http::get_http_request_header("GET", "/", "localhost", "cppnet-test");
+            (void)client.send_data(request.c_str(), request.size());
+            char raw[256] = {};
+            const int n = client.recv_data(raw, sizeof(raw), 3000);
+            (void)client.close_s();
+            (void)server.stop();
+            expect(n > 0, "net_base recv_data(ptr) should read bytes");
+        }
+    }
+
     void test_server_client_tcp()
     {
         constexpr int port = 18100;
@@ -134,86 +217,101 @@ namespace
         expect(unet::http::extract_http_body(response) == "ok", "SSL response body mismatch");
     }
 
-    void test_standby_client_modes()
+    void test_standby_client_tcp()
     {
         constexpr int tcp_port = 18110;
-        {
-            unet::Server server(tcp_port, http_ok_callback, unet::TCP_c, "server.crt", "server.key", false);
-            expect(server.listen_p(false) == unet::success, "server listen_p for standby TCP failed");
-            std::this_thread::sleep_for(150ms);
+        unet::Server server(tcp_port, http_ok_callback, unet::TCP_c, "server.crt", "server.key", false);
+        expect(server.listen_p(false) == unet::success, "server listen_p for standby TCP failed");
+        std::this_thread::sleep_for(150ms);
 
-            unet::Standby sb(tcp_port, unet::TCP_c);
-            (void)sb.set(tcp_port, unet::TCP_c);
-            (void)sb.change_type(unet::TCP_c);
-            (void)sb.connect_s("::1");
-            const std::string req = unet::http::get_http_request_header("GET", "/", "localhost", "cppnet-test");
-            (void)sb.send_data(req, req.size());
-            const std::string response = sb.recv_all(3000);
-            (void)sb.close_s();
-            (void)server.stop();
-            expect(response.starts_with("HTTP/1.1 200 OK"), "standby TCP client failed");
-        }
-
-        constexpr int ssl_port = 18111;
-        {
-            unet::Server server(ssl_port, http_ok_callback, unet::SSL_c, "server.crt", "server.key", false);
-            expect(server.listen_p(false) == unet::success, "server listen_p for standby SSL failed");
-            std::this_thread::sleep_for(150ms);
-
-            unet::Standby sb(ssl_port, unet::SSL_c);
-            (void)sb.set(ssl_port, unet::SSL_c);
-            (void)sb.change_type(unet::SSL_c);
-            (void)sb.connect_s("::1");
-            const std::string req = unet::http::get_http_request_header("GET", "/", "localhost", "cppnet-test");
-            (void)sb.send_data(req, req.size());
-            const std::string response = sb.recv_all(3000);
-            (void)sb.close_s();
-            (void)server.stop();
-            expect(response.starts_with("HTTP/1.1 200 OK"), "standby SSL client failed");
-        }
+        unet::Standby sb(tcp_port, unet::TCP_c);
+        (void)sb.set(tcp_port, unet::TCP_c);
+        (void)sb.change_type(unet::TCP_c);
+        (void)sb.connect_s("::1");
+        const std::string req = unet::http::get_http_request_header("GET", "/", "localhost", "cppnet-test");
+        (void)sb.send_data(req, req.size());
+        const std::string response = sb.recv_all(3000);
+        (void)sb.close_s();
+        (void)server.stop();
+        expect(response.starts_with("HTTP/1.1 200 OK"), "standby TCP client failed");
     }
 
-    void test_standby_server_modes()
+    void test_standby_client_ssl()
+    {
+        constexpr int ssl_port = 18111;
+        unet::Server server(ssl_port, http_ok_callback, unet::SSL_c, "server.crt", "server.key", false);
+        expect(server.listen_p(false) == unet::success, "server listen_p for standby SSL failed");
+        std::this_thread::sleep_for(150ms);
+
+        unet::Standby sb(ssl_port, unet::SSL_c);
+        (void)sb.set(ssl_port, unet::SSL_c);
+        (void)sb.change_type(unet::SSL_c);
+        (void)sb.connect_s("::1");
+        const std::string req = unet::http::get_http_request_header("GET", "/", "localhost", "cppnet-test");
+        (void)sb.send_data(req, req.size());
+        const std::string response = sb.recv_all(3000);
+        (void)sb.close_s();
+        (void)server.stop();
+        expect(response.starts_with("HTTP/1.1 200 OK"), "standby SSL client failed");
+    }
+
+    void test_standby_server_tcp()
     {
         constexpr int tcp_port = 18120;
-        {
-            std::thread server_thread(standby_server_once, unet::TCP_c, tcp_port);
-            std::this_thread::sleep_for(150ms);
+        std::thread server_thread(standby_server_once, unet::TCP_c, tcp_port);
+        std::this_thread::sleep_for(150ms);
 
-            unet::Standby client(tcp_port, unet::TCP_c);
-            (void)client.set(tcp_port, unet::TCP_c);
-            (void)client.connect_s("::1");
-            const std::string req = unet::http::get_http_request_header("GET", "/", "localhost", "cppnet-test");
-            (void)client.send_data(req, req.size());
-            const std::string response = client.recv_all(3000);
-            (void)client.close_s();
-            server_thread.join();
+        unet::Standby client(tcp_port, unet::TCP_c);
+        (void)client.set(tcp_port, unet::TCP_c);
+        (void)client.connect_s("::1");
+        const std::string req = unet::http::get_http_request_header("GET", "/", "localhost", "cppnet-test");
+        (void)client.send_data(req, req.size());
+        const std::string response = client.recv_all(3000);
+        (void)client.close_s();
+        server_thread.join();
 
-            expect(response.starts_with("HTTP/1.1 200 OK"), "standby TCP server failed");
-            expect(unet::http::extract_http_body(response) == "standby", "standby TCP body mismatch");
-        }
+        expect(response.starts_with("HTTP/1.1 200 OK"), "standby TCP server failed");
+        expect(unet::http::extract_http_body(response) == "standby", "standby TCP body mismatch");
+    }
 
+    void test_standby_server_ssl()
+    {
         constexpr int ssl_port = 18121;
-        {
-            std::thread server_thread(standby_server_once, unet::SSL_c, ssl_port);
-            std::this_thread::sleep_for(150ms);
+        std::thread server_thread(standby_server_once, unet::SSL_c, ssl_port);
+        std::this_thread::sleep_for(150ms);
 
-            unet::Standby client(ssl_port, unet::SSL_c);
-            (void)client.set(ssl_port, unet::SSL_c);
-            (void)client.connect_s("::1");
-            const std::string req = unet::http::get_http_request_header("GET", "/", "localhost", "cppnet-test");
-            (void)client.send_data(req, req.size());
-            const std::string response = client.recv_all(3000);
-            (void)client.close_s();
-            server_thread.join();
+        unet::Standby client(ssl_port, unet::SSL_c);
+        (void)client.set(ssl_port, unet::SSL_c);
+        (void)client.connect_s("::1");
+        const std::string req = unet::http::get_http_request_header("GET", "/", "localhost", "cppnet-test");
+        (void)client.send_data(req, req.size());
+        const std::string response = client.recv_all(3000);
+        (void)client.close_s();
+        server_thread.join();
 
-            expect(response.starts_with("HTTP/1.1 200 OK"), "standby SSL server failed");
-            expect(unet::http::extract_http_body(response) == "standby", "standby SSL body mismatch");
-        }
+        expect(response.starts_with("HTTP/1.1 200 OK"), "standby SSL server failed");
+        expect(unet::http::extract_http_body(response) == "standby", "standby SSL body mismatch");
     }
 
     void test_udp_features()
     {
+        // protected send_m/recv_m + parameterized constructor
+        {
+            UdpCoreProbe udp(18169, 18170);
+            unet::IPaddress dst = {};
+            expect(unet::getipaddrinfo("::1", 18170, dst, unet::UDP_c) == unet::success,
+                   "udp getipaddrinfo for protected call failed");
+            const std::string payload = "pm";
+            expect(udp.expose_send_m(&dst, payload.c_str(), (int)payload.size()) == (int)payload.size(),
+                   "udp send_m failed");
+
+            char out[32] = {};
+            unet::IPaddress from = {};
+            const int n = udp.expose_recv_m(&from, out, sizeof(out), 2000);
+            expect(n == (int)payload.size(), "udp recv_m size mismatch");
+            expect(std::string(out, n) == payload, "udp recv_m payload mismatch");
+        }
+
         // timeout path
         {
             unet::udp_core udp;
@@ -286,10 +384,14 @@ int main()
     const std::vector<TestCase> tests = {
         {"http helpers", test_http_helpers},
         {"ip helpers", test_ip_helpers},
+        {"net_base surface", test_net_base_surface},
+        {"net_base recv overloads", test_net_base_recv_overloads},
         {"server/client tcp", test_server_client_tcp},
         {"server/client ssl", test_server_client_ssl},
-        {"standby client modes", test_standby_client_modes},
-        {"standby server modes", test_standby_server_modes},
+        {"standby client tcp", test_standby_client_tcp},
+        {"standby client ssl", test_standby_client_ssl},
+        {"standby server tcp", test_standby_server_tcp},
+        {"standby server ssl", test_standby_server_ssl},
         {"udp features", test_udp_features},
     };
 
