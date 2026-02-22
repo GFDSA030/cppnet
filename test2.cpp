@@ -10,6 +10,19 @@
 
 namespace
 {
+    namespace console
+    {
+        constexpr const char *reset = "\033[0m\033[39m\033[49m";
+        namespace colors
+        {
+            constexpr const char *red = "\033[31m";
+            constexpr const char *green = "\033[32m";
+            constexpr const char *yellow = "\033[33m";
+            constexpr const char *cyan = "\033[36m";
+            constexpr const char *white = "\033[37m";
+        }
+    } // namespace console
+
     using namespace std::chrono_literals;
     constexpr const char *kLoopback = "::1";
     constexpr const char *kHost = "localhost";
@@ -413,33 +426,62 @@ int main()
     };
 
     int failed = 0;
+    int passed = 0;
+    std::vector<std::string> failed_tests;
+
+    std::cout << console::colors::cyan
+              << "==== cppnet test2 begin (" << tests.size() << " tests) ===="
+              << console::reset << "\n";
+
     for (const auto &test : tests)
     {
+        std::cout << console::colors::white << "[RUN ] " << test.name << console::reset << "\n";
         try
         {
             test.fn();
-            std::cout << "[PASS] " << test.name << "\n";
+            passed++;
+            std::cout << console::colors::green << "[PASS] " << test.name << console::reset << "\n";
         }
         catch (const std::exception &e)
         {
             failed++;
-            std::cerr << "[FAIL] " << test.name << " : " << e.what() << "\n";
+            failed_tests.push_back(test.name);
+            std::cerr << console::colors::red << "[FAIL] " << test.name << " : " << e.what()
+                      << console::reset << "\n";
         }
         catch (...)
         {
             failed++;
-            std::cerr << "[FAIL] " << test.name << " : unknown error\n";
+            failed_tests.push_back(test.name);
+            std::cerr << console::colors::red << "[FAIL] " << test.name << " : unknown error"
+                      << console::reset << "\n";
         }
     }
 
     unet::netcpp_stop();
 
+    std::cout << console::colors::cyan << "==== cppnet test2 summary ====" << console::reset << "\n";
+    std::cout << console::colors::green << "Passed: " << passed << console::reset << " / " << tests.size() << "\n";
+    if (failed > 0)
+        std::cout << console::colors::red << "Failed: " << failed << console::reset << "\n";
+    else
+        std::cout << console::colors::green << "Failed: 0" << console::reset << "\n";
+
+    if (!failed_tests.empty())
+    {
+        std::cerr << console::colors::yellow << "Failed test list:" << console::reset << "\n";
+        for (const auto &name : failed_tests)
+            std::cerr << console::colors::yellow << " - " << name << console::reset << "\n";
+    }
+
     if (failed == 0)
     {
-        std::cout << "All tests passed (" << tests.size() << "/" << tests.size() << ")\n";
+        std::cout << console::colors::green
+                  << "All tests passed (" << tests.size() << "/" << tests.size() << ")"
+                  << console::reset << "\n";
         return 0;
     }
 
-    std::cerr << failed << " test(s) failed\n";
+    std::cerr << console::colors::red << failed << " test(s) failed" << console::reset << "\n";
     return 1;
 }

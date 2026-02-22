@@ -1,180 +1,153 @@
-# cppnet 日本語ドキュメント
+# cppnet ドキュメント
 
 [English version](README_en.md)
 
 ## 概要
 
-C++で TCP/UDP/SSL 通信サーバ・クライアントを簡単に構築できるクロスプラットフォームネットワークライブラリです。
+`cppnet` は、TCP/UDP/SSL 通信を C++ で扱うための軽量ネットワークライブラリです。  
+`#include <unet.h>` で、以下の主要ヘッダをまとめて利用できます。
 
-## 特徴
+- `netdefs.h`
+- `base.h`
+- `server.h`
+- `client.h`
+- `udp.h`
+- `http.h`
 
-- Windows/Linux/macOS 対応
-- TCP/UDP/SSL 通信をサポート
-- シンプルな API 設計
-- OpenSSL による SSL 通信対応
-- サーバ・クライアント両方の実装が可能
+## 公開 API（主要）
 
-## サポート環境
+### 初期化とユーティリティ
 
-- Windows（MinGW, MSVC）
-- Ubuntu（gcc, clang）
-- macOS（未検証）
+- `unet::netcpp_start()`
+- `unet::netcpp_stop()`
+- `unet::getipaddr(...)`
+- `unet::getipaddrinfo(...)`
+- `unet::ip2str(...)`
 
-## ビルド環境構築
+### ソケット種別
+
+- `unet::TCP_c`
+- `unet::SSL_c`
+- `unet::UDP_c`
+
+### 主要クラス
+
+- `unet::Server`（`typedef Server_com` あり）
+- `unet::Client`
+- `unet::Standby`
+- `unet::net_core`（Server コールバック側）
+- `unet::udp_core`
+- `unet::net_base`（共通ベース）
+
+### HTTP ヘルパ
+
+- `unet::http::get_http_request_header(...)`
+- `unet::http::get_http_result_header(...)`
+- `unet::http::extract_http_header(...)`
+- `unet::http::extract_http_body(...)`
+
+## 動作確認済み項目（`test2.cpp`）
+
+`test2.cpp` では次の 11 項目を検証しています。
+
+- HTTP ヘルパ（ヘッダ生成/抽出）
+- IP 解決ユーティリティ
+- `net_base` の基本動作
+- `net_base::recv_data` のオーバーロード
+- `Server` + `Client`（TCP）
+- `Server` + `Client`（SSL）
+- `Standby` クライアント（TCP）
+- `Standby` クライアント（SSL）
+- `Standby` サーバ（TCP）
+- `Standby` サーバ（SSL）
+- `udp_core` の送受信・タイムアウト・アドレス付き受信
+
+## ビルド
+
+### Linux (Ubuntu) 例
 
 ```bash
-apt install -y clang gcc libssl-dev make
+sudo apt install -y g++ clang make libssl-dev zlib1g-dev
 ```
-
-## ビルド方法
 
 ```bash
 git clone https://github.com/GFDSA030/cppnet.git cppnet
-```
-
-Makefile に openssl のパスを設定する必要があります。Makefile の`IFILE`にヘッダへのパスを`LFILE`にライブラリへのパスを適切に設定してください。
-
-```bash
 cd cppnet
 make
 ```
 
-## クラス・定数の説明
+`Makefile` の `IFILE` / `LFILE` は環境に応じて調整してください（特に Windows）。
 
-### 通信種別
+## 実行
 
-- `unet::TCP_c` : TCP 通信
-- `unet::UDP_c` : UDP 通信（未テスト）
-- `unet::SSL_c` : SSL 通信（OpenSSL 必須）
+```bash
+./main.out
+./test.out
+./test2.out
+```
 
-### 主なクラス
+## 最小サンプル
 
-- `unet::net_core` : サーバ共通の通信クラス
-- `unet::ServerTCP` : TCP サーバクラス
-- `unet::ServerSSL` : SSL サーバクラス
-- `unet::Server` : 複数種別対応サーバクラス
-- `unet::ClientTCP` : TCP クライアントクラス
-- `unet::ClientSSL` : SSL クライアントクラス
-- `unet::Client` : 複数種別対応クライアントクラス
-
-## クラス別サンプル
-
-### unet::ServerTCP（TCP サーバ）
+### Server + Client（TCP）
 
 ```cpp
-#include <server.h>
+#include <unet.h>
+#include <thread>
+#include <chrono>
 #include <iostream>
-void callback(unet::net_core &con, void *Udata) {
-    std::string msg = "Hello TCP!";
-    con.send_data(msg.c_str(), msg.size());
-    con.close_s();
+
+void on_conn(unet::net_core& nc, void*) {
+    std::string req;
+    nc.recv_data(req, 2048, 1000);
+    const std::string res =
+        unet::http::get_http_result_header("200 OK", "text/plain", 2) + "ok";
+    nc.send_data(res);
+    nc.close_s();
 }
+
 int main() {
-    unet::ServerTCP svr(9000, callback);
-    svr.listen_p();
+    unet::netcpp_start();
+
+    unet::Server server(18080, on_conn, unet::TCP_c, "server.crt", "server.key", false);
+    server.listen_p(false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+
+    unet::Client client;
+    client.connect_s("::1", unet::TCP_c, 18080);
+    client.send_data(unet::http::get_http_request_header("GET", "/", "localhost"));
+    std::cout << client.recv_all(3000) << std::endl;
+    client.close_s();
+
+    server.stop();
+    unet::netcpp_stop();
 }
 ```
 
-### unet::ServerSSL（SSL サーバ）
+### UDP（`udp_core`）
 
 ```cpp
-#include <server.h>
+#include <unet.h>
 #include <iostream>
-void callback(unet::net_core &con, void *Udata) {
-    std::string msg = "Hello SSL!";
-    con.send_data(msg.c_str(), msg.size());
-    con.close_s();
-}
+
 int main() {
-    unet::ServerSSL svr(9443, callback, "server.crt", "server.key");
-    svr.listen_p();
+    unet::netcpp_start();
+
+    unet::udp_core udp;
+    udp.set_port(18140, 18141);               // TX, RX
+    udp.send_data("::1", "hello", 5);
+
+    char buf[64] = {};
+    int n = udp.recv_data(buf, sizeof(buf), 2000);
+    if (n > 0) std::cout << std::string(buf, n) << std::endl;
+
+    unet::netcpp_stop();
 }
 ```
 
-### unet::Server_com（複数種別対応サーバ）
+## 注意事項
 
-```cpp
-#include <server.h>
-#include <iostream>
-void callback(unet::net_core &con, void *Udata) {
-    std::string msg = "Hello Server_com!";
-    con.send_data(msg.c_str(), msg.size());
-    con.close_s();
-}
-int main() {
-    unet::Server_com svr(9090, callback, unet::TCP_c);
-    svr.listen_p();
-}
-```
-
-### unet::ClientTCP（TCP クライアント）
-
-```cpp
-#include <client.h>
-#include <iostream>
-int main() {
-    unet::ClientTCP cli("localhost", 9000);
-    cli.send_data("Hello TCP server", 17);
-    std::cout << cli.recv_all() << std::endl;
-    cli.close_s();
-}
-```
-
-### unet::ClientSSL（SSL クライアント）
-
-```cpp
-#include <client.h>
-#include <iostream>
-int main() {
-    unet::ClientSSL cli("localhost", 9443);
-    cli.send_data("Hello SSL server", 17);
-    std::cout << cli.recv_all() << std::endl;
-    cli.close_s();
-}
-```
-
-### unet::Client_com（複数種別対応クライアント）
-
-```cpp
-#include <client.h>
-#include <iostream>
-int main() {
-    unet::Client_com cli("localhost", unet::TCP_c, 9090);
-    cli.send_data("Hello Server_com", 16);
-    std::cout << cli.recv_all() << std::endl;
-    cli.close_s();
-}
-```
-
-### unet::ServerUDP（UDP サーバ）
-
-```cpp
-#include <server.h>
-#include <iostream>
-int main() {
-    unet::ServerUDP svr(8000);
-    char buf[1024];
-    int len = svr.recv_data(buf, sizeof(buf));
-    std::cout << "受信: " << std::string(buf, len) << std::endl;
-    svr.send_data("Hello UDP!", 10);
-    svr.close_s();
-}
-```
-
-### unet::ClientUDP（UDP クライアント）
-
-```cpp
-#include <client.h>
-#include <iostream>
-int main() {
-    unet::ClientUDP cli("localhost", 8000);
-    cli.send_data("Hello UDP server", 17);
-    char buf[1024];
-    int len = cli.recv_data(buf, sizeof(buf));
-    std::cout << std::string(buf, len) << std::endl;
-    cli.close_s();
-}
-```
+- SSL 通信には証明書/秘密鍵ファイル（例: `server.crt`, `server.key`）が必要です。
+- `test2.cpp` は IPv6 ループバック（`::1`）を使うため、実行環境で IPv6 が有効である必要があります。
 
 ## ライセンス
 

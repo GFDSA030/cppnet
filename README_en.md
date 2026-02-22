@@ -1,196 +1,153 @@
-# cppnet Documentation (English)
+# cppnet Documentation
 
 [Japanese version](README.md)
 
 ## Overview
 
-cppnet is a cross-platform C++ network library for easily building TCP/UDP/SSL servers and clients.
+`cppnet` is a lightweight C++ networking library for TCP/UDP/SSL communication.  
+Using `#include <unet.h>` pulls in the main public headers:
 
-## Features
+- `netdefs.h`
+- `base.h`
+- `server.h`
+- `client.h`
+- `udp.h`
+- `http.h`
 
-- Supports Windows/Linux/macOS
-- TCP/UDP/SSL communication
-- Simple API design
-- SSL communication via OpenSSL
-- Both server and client implementations
+## Public API (Core)
 
-## Supported Environments
+### Initialization and Utilities
 
-- Windows (MinGW, MSVC)
-- Ubuntu (gcc, clang)
-- macOS (untested)
+- `unet::netcpp_start()`
+- `unet::netcpp_stop()`
+- `unet::getipaddr(...)`
+- `unet::getipaddrinfo(...)`
+- `unet::ip2str(...)`
 
-## Build Environment Setup
+### Socket Types
+
+- `unet::TCP_c`
+- `unet::SSL_c`
+- `unet::UDP_c`
+
+### Main Classes
+
+- `unet::Server` (`typedef Server_com` is available)
+- `unet::Client`
+- `unet::Standby`
+- `unet::net_core` (used in server callbacks)
+- `unet::udp_core`
+- `unet::net_base` (shared base)
+
+### HTTP Helpers
+
+- `unet::http::get_http_request_header(...)`
+- `unet::http::get_http_result_header(...)`
+- `unet::http::extract_http_header(...)`
+- `unet::http::extract_http_body(...)`
+
+## Verified Scenarios (`test2.cpp`)
+
+`test2.cpp` covers these 11 scenarios:
+
+- HTTP helper generation/parsing
+- IP helper functions
+- `net_base` surface behavior
+- `net_base::recv_data` overloads
+- `Server` + `Client` (TCP)
+- `Server` + `Client` (SSL)
+- `Standby` client mode (TCP)
+- `Standby` client mode (SSL)
+- `Standby` server mode (TCP)
+- `Standby` server mode (SSL)
+- `udp_core` send/receive, timeout, and address-aware receive
+
+## Build
+
+### Example (Linux / Ubuntu)
 
 ```bash
-apt install -y clang gcc libssl-dev make
+sudo apt install -y g++ clang make libssl-dev zlib1g-dev
 ```
-
-## Build Instructions
 
 ```bash
 git clone https://github.com/GFDSA030/cppnet.git cppnet
-```
-
-You need to set the OpenSSL path in the Makefile. Set the header path to `IFILE` and the library path to `LFILE` as appropriate for your environment.
-
-```bash
 cd cppnet
 make
 ```
 
-## Classes & Constants
+Adjust `IFILE` / `LFILE` in `Makefile` for your environment (especially on Windows).
 
-### Communication Types
+## Run
 
-- `unet::TCP_c` : TCP communication
-- `unet::UDP_c` : UDP communication (untested)
-- `unet::SSL_c` : SSL communication (OpenSSL required)
+```bash
+./main.out
+./test.out
+./test2.out
+```
 
-### Main Classes
+## Minimal Examples
 
-- `unet::net_core` : common communication class for server
-- `unet::ServerTCP` : TCP server class
-- `unet::ServerSSL` : SSL server class
-- `unet::Server_com` : Multi-type server class (with overhead)
-- `unet::ClientTCP` : TCP client class
-- `unet::ClientSSL` : SSL client class
-- `unet::Client_com` : Multi-type client class (with overhead)
-
-## Class Examples
-
-### unet::ServerTCP (TCP Server)
+### Server + Client (TCP)
 
 ```cpp
-#include <server.h>
+#include <unet.h>
+#include <thread>
+#include <chrono>
 #include <iostream>
-void callback(unet::net_core &con) {
-    std::string msg = "Hello TCP!";
-    con.send_data(msg.c_str(), msg.size());
-    con.close_s();
+
+void on_conn(unet::net_core& nc, void*) {
+    std::string req;
+    nc.recv_data(req, 2048, 1000);
+    const std::string res =
+        unet::http::get_http_result_header("200 OK", "text/plain", 2) + "ok";
+    nc.send_data(res);
+    nc.close_s();
 }
+
 int main() {
-    unet::netinit();
-    unet::ServerTCP svr(9000, callback);
-    svr.listen_p();
-    unet::netquit();
+    unet::netcpp_start();
+
+    unet::Server server(18080, on_conn, unet::TCP_c, "server.crt", "server.key", false);
+    server.listen_p(false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+
+    unet::Client client;
+    client.connect_s("::1", unet::TCP_c, 18080);
+    client.send_data(unet::http::get_http_request_header("GET", "/", "localhost"));
+    std::cout << client.recv_all(3000) << std::endl;
+    client.close_s();
+
+    server.stop();
+    unet::netcpp_stop();
 }
 ```
 
-### unet::ServerSSL (SSL Server)
+### UDP (`udp_core`)
 
 ```cpp
-#include <server.h>
+#include <unet.h>
 #include <iostream>
-void callback(unet::net_core &con) {
-    std::string msg = "Hello SSL!";
-    con.send_data(msg.c_str(), msg.size());
-    con.close_s();
-}
+
 int main() {
-    unet::netinit();
-    unet::ServerSSL svr(9443, callback, "server.crt", "server.key");
-    svr.listen_p();
-    unet::netquit();
+    unet::netcpp_start();
+
+    unet::udp_core udp;
+    udp.set_port(18140, 18141);               // TX, RX
+    udp.send_data("::1", "hello", 5);
+
+    char buf[64] = {};
+    int n = udp.recv_data(buf, sizeof(buf), 2000);
+    if (n > 0) std::cout << std::string(buf, n) << std::endl;
+
+    unet::netcpp_stop();
 }
 ```
 
-### unet::Server_com (Multi-type Server)
+## Notes
 
-```cpp
-#include <server.h>
-#include <iostream>
-void callback(unet::net_core &con) {
-    std::string msg = "Hello Server_com!";
-    con.send_data(msg.c_str(), msg.size());
-    con.close_s();
-}
-int main() {
-    unet::netinit();
-    unet::Server_com svr(9090, callback, unet::TCP_c);
-    svr.listen_p();
-    unet::netquit();
-}
-```
-
-### unet::ClientTCP (TCP Client)
-
-```cpp
-#include <client.h>
-#include <iostream>
-int main() {
-    unet::netinit();
-    unet::ClientTCP cli("localhost", 9000);
-    cli.send_data("Hello TCP server", 17);
-    std::cout << cli.recv_all() << std::endl;
-    cli.close_s();
-    unet::netquit();
-}
-```
-
-### unet::ClientSSL (SSL Client)
-
-```cpp
-#include <client.h>
-#include <iostream>
-int main() {
-    unet::netinit();
-    unet::ClientSSL cli("localhost", 9443);
-    cli.send_data("Hello SSL server", 17);
-    std::cout << cli.recv_all() << std::endl;
-    cli.close_s();
-    unet::netquit();
-}
-```
-
-### unet::Client_com (Multi-type Client)
-
-```cpp
-#include <client.h>
-#include <iostream>
-int main() {
-    unet::netinit();
-    unet::Client_com cli("localhost", unet::TCP_c, 9090);
-    cli.send_data("Hello Server_com", 16);
-    std::cout << cli.recv_all() << std::endl;
-    cli.close_s();
-    unet::netquit();
-}
-```
-
-### unet::ServerUDP (UDP Server)
-
-```cpp
-#include <server.h>
-#include <iostream>
-int main() {
-    unet::netinit();
-    unet::ServerUDP svr(8000);
-    char buf[1024];
-    int len = svr.recv_data(buf, sizeof(buf));
-    std::cout << "Received: " << std::string(buf, len) << std::endl;
-    svr.send_data("Hello UDP!", 10);
-    svr.close_s();
-    unet::netquit();
-}
-```
-
-### unet::ClientUDP (UDP Client)
-
-```cpp
-#include <client.h>
-#include <iostream>
-int main() {
-    unet::netinit();
-    unet::ClientUDP cli("localhost", 8000);
-    cli.send_data("Hello UDP server", 17);
-    char buf[1024];
-    int len = cli.recv_data(buf, sizeof(buf));
-    std::cout << std::string(buf, len) << std::endl;
-    cli.close_s();
-    unet::netquit();
-}
-```
+- SSL mode requires certificate/private key files (for example: `server.crt`, `server.key`).
+- `test2.cpp` uses IPv6 loopback (`::1`), so IPv6 must be enabled in your environment.
 
 ## License
 
