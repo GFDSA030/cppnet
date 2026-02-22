@@ -168,4 +168,47 @@ namespace unet
         IPaddress addr;
         return recv_m(&addr, buf, len, timeout);
     }
+    std::string udp_core::recv_all(int32_t timeout)
+    {
+        IPaddress addr;
+        return recv_all(&addr, timeout);
+    }
+    std::string udp_core::recv_all(IPaddress *addr, int32_t timeout)
+    {
+        std::string result;
+        if (RXsock <= 0)
+            return result;
+
+        constexpr int BUF_SIZE = 4096;
+        char buffer[BUF_SIZE];
+        IPaddress local_addr = {0};
+        IPaddress *recv_addr = (addr != nullptr) ? addr : &local_addr;
+
+        int ret = recv_m(recv_addr, buffer, BUF_SIZE, timeout);
+        if (ret <= 0)
+            return result;
+
+        result.append(buffer, ret);
+
+        for (;;)
+        {
+            fd_set readfds;
+            FD_ZERO(&readfds);
+            FD_SET(RXsock, &readfds);
+            struct timeval tv;
+            tv.tv_sec = 0;
+            tv.tv_usec = 0;
+
+            int sel = select(RXsock + 1, &readfds, NULL, NULL, &tv);
+            if (sel <= 0)
+                break;
+
+            ret = recv_m(recv_addr, buffer, BUF_SIZE, 0);
+            if (ret <= 0)
+                break;
+
+            result.append(buffer, ret);
+        }
+        return result;
+    }
 }
