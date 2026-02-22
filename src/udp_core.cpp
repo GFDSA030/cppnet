@@ -26,8 +26,27 @@ namespace unet
         TXsock = 0;
         return ret;
     }
-    int udp_core::recv_m(IPaddress *addr, char *buf, int len) const noexcept
+    int udp_core::recv_m(IPaddress *addr, char *buf, int len, int32_t timeout) const noexcept
     {
+        if (RXsock <= 0)
+            return error;
+
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        FD_SET(RXsock, &readfds);
+
+        struct timeval tv;
+        tv.tv_sec = timeout / 1000;
+        tv.tv_usec = (timeout % 1000) * 1000;
+
+        int sel = select(RXsock + 1, &readfds, NULL, NULL, timeout >= 0 ? &tv : NULL);
+        if (sel <= 0)
+        {
+            if (sel == 0)
+                return 0;
+            return error;
+        }
+
         socklen_t addr_len = sizeof(IPaddress);
         int ret = recvfrom(RXsock, buf, len, 0, (struct sockaddr *)addr, &addr_len);
         return ret;
@@ -140,13 +159,13 @@ namespace unet
         return send_m(&addr_in, buf, len);
     }
 
-    int udp_core::recv_data(IPaddress *addr, char *buf, int len)
+    int udp_core::recv_data(IPaddress *addr, char *buf, int len, int32_t timeout)
     {
-        return recv_m(addr, buf, len);
+        return recv_m(addr, buf, len, timeout);
     }
-    int udp_core::recv_data(char *buf, int len)
+    int udp_core::recv_data(char *buf, int len, int32_t timeout)
     {
         IPaddress addr;
-        return recv_m(&addr, buf, len);
+        return recv_m(&addr, buf, len, timeout);
     }
 }

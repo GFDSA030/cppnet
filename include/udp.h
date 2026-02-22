@@ -1,6 +1,7 @@
 #ifndef UDP_H
 #define UDP_H
 #include <netdefs.h>
+#include <string>
 
 namespace unet
 {
@@ -11,7 +12,7 @@ namespace unet
 
     protected:
         int send_m(const IPaddress *addr, const char *buf, int len) const noexcept;
-        int recv_m(IPaddress *addr, char *buf, int len) const noexcept;
+        int recv_m(IPaddress *addr, char *buf, int len, int32_t timeout = -1) const noexcept;
         mutable int TXsock = 0;
         int TXport = 0;
         mutable int RXsock = 0;
@@ -38,14 +39,25 @@ namespace unet
         /// @brief データ受信
         /// @param buf 受信バッファ
         /// @param len 受信長
+        /// @param timeout タイムアウト時間(ms)、-1で無限待機
         /// @return 0で成功-1で失敗
-        int recv_data(char *buf, int len);
+        int recv_data(char *buf, int len, int32_t timeout = -1);
+        /// @brief データ受信
+        /// @param timeout タイムアウト時間(ms)、-1で無限待機
+        /// @return 0で成功-1で失敗
+        std::string recv_all(int32_t timeout = -1);
         /// @brief データ受信（送信元付き）
         /// @param addr 送信元アドレス
         /// @param buf 受信バッファ
         /// @param len 受信長
+        /// @param timeout タイムアウト時間(ms)、-1で無限待機
         /// @return 0で成功-1で失敗
-        int recv_data(IPaddress *addr, char *buf, int len);
+        int recv_data(IPaddress *addr, char *buf, int len, int32_t timeout = -1);
+        /// @brief データ受信（送信元付き）
+        /// @param addr 送信元アドレス
+        /// @param timeout タイムアウト時間(ms)、-1で無限待機
+        /// @return 0で成功-1で失敗
+        std::string recv_all(IPaddress *addr, int32_t timeout = -1);
     };
 
 }
