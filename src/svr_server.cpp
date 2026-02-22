@@ -217,15 +217,4 @@ namespace unet
             return success;
         }
     }
-
-    sock_type Server::change_type(const sock_type type_) noexcept
-    {
-        if (type < 0 || type_ == unknown)
-        {
-            fprintf(stderr, "type is unknown\n");
-            return type;
-        }
-        type = type_;
-        return type;
-    }
 }

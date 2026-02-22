@@ -106,7 +106,6 @@ namespace
     {
         unet::Standby sb(port, type);
         (void)sb.set(port, type);
-        (void)sb.change_type(type);
         (void)sb.connect_s(kLoopback);
         (void)sb.send_data(request, request.size());
         const std::string response = sb.recv_all(kTimeoutMs);

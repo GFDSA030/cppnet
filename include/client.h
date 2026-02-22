@@ -20,10 +20,6 @@ namespace unet
         /// @param port_ 接続先ポート(-1ならtype_に従う)
         /// @return 成功で0、エラー時は-1
         int connect_s(const char *addr_, const sock_type type_, const int port_ = -1) noexcept;
-        /// @brief 接続タイプ変更
-        /// @param type_ 接続タイプ
-        /// @return 変更後のタイプ、エラー時はunknown
-        sock_type change_type(const sock_type type_) noexcept;
         ~Client();
     };
 }

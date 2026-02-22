@@ -66,10 +66,6 @@ namespace unet
         /// @param thread_ スレッド使用
         Server(int port_, svrCallbackFn fnc_, sock_type type_ = TCP_c, const char *crt = "", const char *pem = "", bool thread_ = true) noexcept;
         ~Server();
-        /// @brief 接続タイプ変更
-        /// @param type_ 接続タイプ
-        /// @return 変更後のタイプ、エラー時はunknown
-        sock_type change_type(const sock_type type_) noexcept;
         /// @brief サーバーリッスン(非ブロッキング)
         /// @param block ブロッキングモード(trueならブロッキング)
         /// @return 成功で0、エラー時は-1

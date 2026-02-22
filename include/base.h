@@ -93,7 +93,7 @@ namespace unet
         IPaddress remote() const noexcept;
     };
 
-    class Standby : public net_base // どっちにもなる //TODO:
+    class Standby : public net_base
     {
     private:
         int port = 0;
@@ -107,7 +107,6 @@ namespace unet
         IPaddress get_addr() const noexcept;
         int connect_s(const char *addr_) noexcept;
         int close_s() noexcept;
-        sock_type change_type(const sock_type type_) noexcept;
     };
 
 }

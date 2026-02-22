@@ -7,7 +7,8 @@ namespace unet
     {
         netcpp_start();
         port = port_;
-        change_type(type_);
+        type = type_;
+        set_type(type_);
     }
     Standby::~Standby()
     {
@@ -17,7 +18,8 @@ namespace unet
     int Standby::set(int port_, const sock_type type_) noexcept
     {
         port = port_;
-        change_type(type_);
+        type = type_;
+        set_type(type_);
         return success;
     }
     int Standby::accept_s(const char *crt, const char *pem) noexcept
@@ -177,16 +179,5 @@ namespace unet
         }
         this_status = offline;
         return success;
-    }
-    sock_type Standby::change_type(const sock_type type_) noexcept
-    {
-        if (type_ < 0 || type_ == unknown)
-        {
-            fprintf(stderr, "type is unknown\n");
-            return type;
-        }
-        type = type_;
-        set_type(type_);
-        return type;
     }
 } // namespace unet
