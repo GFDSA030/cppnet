@@ -1,5 +1,4 @@
-#ifndef HTTP_H
-#define HTTP_H
+#pragma once
 #include <netdefs.h>
 #include <string>
 
@@ -29,5 +28,3 @@ namespace unet::inline http
     /// @return ヘッダ部分
     std::string extract_http_header(const std::string &header);
 }
-
-#endif // HTTP_H

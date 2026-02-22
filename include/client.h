@@ -1,5 +1,4 @@
-#ifndef CLIENT
-#define CLIENT
+#pragma once
 
 #include <base.h>
 
@@ -28,4 +27,3 @@ namespace unet
         ~Client();
     };
 }
-#endif

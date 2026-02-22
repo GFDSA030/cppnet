@@ -1,5 +1,4 @@
-#ifndef BASE
-#define BASE
+#pragma once
 #include <netdefs.h>
 #include <string>
 #include <functional>
@@ -112,4 +111,3 @@ namespace unet
     };
 
 }
-#endif // BASE

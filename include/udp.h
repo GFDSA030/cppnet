@@ -1,5 +1,4 @@
-#ifndef UDP_H
-#define UDP_H
+#pragma once
 #include <netdefs.h>
 #include <string>
 
@@ -61,5 +60,3 @@ namespace unet
     };
 
 }
-
-#endif // UDP_H

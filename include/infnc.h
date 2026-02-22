@@ -1,5 +1,4 @@
-#ifndef INFNC
-#define INFNC
+#pragma once
 
 #include <base.h>
 #include <thread>
@@ -58,5 +57,3 @@ namespace unet
     };
 
 } // namespace unet
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef SERVER
-#define SERVER
+#pragma once
 
 #include <base.h>
 #include <atomic>
@@ -79,4 +78,3 @@ namespace unet
     typedef Server Server_com;
 
 }
-#endif

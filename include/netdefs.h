@@ -1,5 +1,4 @@
-#ifndef NETDEFS
-#define NETDEFS
+#pragma once
 // define here
 
 #define NETCPP_SSL_AVAILABLE
@@ -101,5 +100,3 @@ namespace unet
     };
 
 } // namespace unet
-
-#endif // NETDEFS

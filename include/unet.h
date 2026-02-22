@@ -1,10 +1,4 @@
-#ifndef UNET
-#define UNET
-// DONE: ipv6 support
-// TODO: memory leak check
-// TODO: error handling
-// DONE: add more comments
-// TODO: child process support 子プロセスに処理を投げる
+#pragma once
 #include <netdefs.h>
 
 #include <base.h>
@@ -14,5 +8,3 @@
 #include <udp.h>
 
 #include <http.h>
-
-#endif // UNET
