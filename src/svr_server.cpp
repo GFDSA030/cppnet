@@ -117,6 +117,7 @@ namespace unet
         int sockcli;
         while (cont.load())
         {
+            cleanup_worker_threads();
             fd_set readfds;
             FD_ZERO(&readfds);
 #if defined(_WIN32) || defined(__MINGW32__)
@@ -128,7 +129,7 @@ namespace unet
 
             struct timeval tv;
             tv.tv_sec = 0;
-            tv.tv_usec = 200 * 1000;
+            tv.tv_usec = 20 * 1000;
 
             int sel = select((int)(s + 1), &readfds, NULL, NULL, &tv);
             if (sel == 0)

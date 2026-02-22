@@ -9,17 +9,24 @@
 namespace unet
 {
     typedef void (*svrCallbackFn)(net_core &, void *);
+    struct worker_thread_entry
+    {
+        std::thread worker;
+        std::shared_ptr<std::atomic_bool> done;
+    };
     class server_base
     {
     private:
         static void fn2core(server_base *where, svrCallbackFn fnc_, int socket, const IPaddress cli, sock_type type_, SSL *ssl_, void *Udata) noexcept;
-        std::shared_ptr<size_t> connections = std::make_shared<size_t>(0);
-        std::atomic_size_t connection_no{0};
+        std::atomic_size_t connections{0};   // 現在接続数
+        std::atomic_size_t connection_no{0}; // 過去合計接続数
         void join_worker_threads() noexcept;
+        void cleanup_worker_threads_locked(std::vector<worker_thread_entry> &finished) noexcept;
 
     protected:
         server_base() noexcept;
         ~server_base();
+        void cleanup_worker_threads() noexcept;
 
         static void run_fn(server_base *where, svrCallbackFn fnc_, int socket, const IPaddress cli, sock_type type_, SSL *ssl_, bool thread_, void *Udata) noexcept;
 
@@ -32,7 +39,7 @@ namespace unet
         std::atomic_bool cont{true};
         std::thread listen_thread;
         std::mutex worker_threads_mtx;
-        std::vector<std::thread> worker_threads;
+        std::vector<worker_thread_entry> worker_threads;
         void *UserData = nullptr;
 
     public:
