@@ -1,5 +1,6 @@
 #include <server.h>
 #include <infnc.h>
+#include <errno.h>
 #include <string>
 #include <thread>
 namespace unet
@@ -50,6 +51,15 @@ namespace unet
             sock = -1;
             return;
         }
+        // Keep accept loop interruptible so stop() can terminate promptly.
+        u_long listen_nonblock = 1;
+        if (ioctl(sock, FIONBIO, &listen_nonblock) < 0)
+        {
+            perror("ioctl(FIONBIO) failed on listen socket");
+            close(sock);
+            sock = -1;
+            return;
+        }
 
 #ifdef NETCPP_SSL_AVAILABLE
         if (type == SSL_c)
@@ -95,26 +105,74 @@ namespace unet
 
     Server::~Server()
     {
+        stop();
     }
 
     int Server::listen_m() noexcept
     {
+        if (sock < 0)
+            return error;
+
         IPaddress client;
-        socklen_t len = sizeof(client);
         int sockcli;
-        while (cont == true)
+        while (cont.load())
         {
+            fd_set readfds;
+            FD_ZERO(&readfds);
+#if defined(_WIN32) || defined(__MINGW32__)
+            SOCKET s = (SOCKET)sock;
+#else
+            int s = sock;
+#endif
+            FD_SET(s, &readfds);
+
+            struct timeval tv;
+            tv.tv_sec = 0;
+            tv.tv_usec = 200 * 1000;
+
+            int sel = select((int)(s + 1), &readfds, NULL, NULL, &tv);
+            if (sel == 0)
+            {
+                // timeout: re-check cont and continue
+                continue;
+            }
+            if (sel < 0)
+            {
+                if (!cont.load() || sock < 0)
+                    break;
+                perror("select() failed");
+                continue;
+            }
+
+            socklen_t len = sizeof(client);
 #ifdef __MINGW32__
             sockcli = accept(sock, (struct sockaddr *)&client, (int *)&len);
 #else
-        sockcli = accept(sock, (struct sockaddr *)&client, &len);
+            sockcli = accept(sock, (struct sockaddr *)&client, &len);
 #endif
             if (sockcli < 0)
             {
+                if (!cont.load() || sock < 0)
+                    break;
+#if defined(_WIN32) || defined(__MINGW32__)
+                const int wsaerr = WSAGetLastError();
+                if (wsaerr == WSAEWOULDBLOCK)
+                    continue;
+#else
+                if (errno == EAGAIN || errno == EWOULDBLOCK)
+                    continue;
+#if defined(__linux__) || defined(__APPLE__)
+                if (errno == EBADF || errno == ENOTSOCK || errno == EINVAL)
+                    break;
+#endif
+#endif
                 perror("accept() failed");
                 continue;
             }
-#ifndef NETCPP_BLOCKING
+#ifdef NETCPP_BLOCKING
+            u_long val = 0;
+            ioctl(sockcli, FIONBIO, &val);
+#else
             u_long val = 1;
             ioctl(sockcli, FIONBIO, &val);
 #endif // NETCPP_BLOCKING
@@ -143,12 +201,19 @@ namespace unet
     }
     int Server::listen_p(bool block) noexcept
     {
+        if (sock < 0)
+        {
+            return error;
+        }
+
         if (block)
             return listen_m();
         else
         {
-            std::thread t(&Server::listen_m, this);
-            t.detach();
+            if (listen_thread.joinable())
+                return error;
+            cont = true;
+            listen_thread = std::thread(&Server::listen_m, this);
             return success;
         }
     }

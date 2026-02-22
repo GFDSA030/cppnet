@@ -2,7 +2,11 @@
 #define SERVER
 
 #include <base.h>
+#include <atomic>
 #include <memory>
+#include <mutex>
+#include <thread>
+#include <vector>
 namespace unet
 {
     typedef void (*svrCallbackFn)(net_core &, void *);
@@ -11,7 +15,8 @@ namespace unet
     private:
         static void fn2core(server_base *where, svrCallbackFn fnc_, int socket, const IPaddress cli, sock_type type_, SSL *ssl_, void *Udata) noexcept;
         std::shared_ptr<size_t> connections = std::make_shared<size_t>(0);
-        size_t connection_no = 0;
+        std::atomic_size_t connection_no{0};
+        void join_worker_threads() noexcept;
 
     protected:
         server_base() noexcept;
@@ -25,7 +30,10 @@ namespace unet
         sock_type type = TCP_c;
         SSL_CTX *ctx = nullptr;
         bool thread_use = true;
-        bool cont = 1;
+        std::atomic_bool cont{true};
+        std::thread listen_thread;
+        std::mutex worker_threads_mtx;
+        std::vector<std::thread> worker_threads;
         void *UserData = nullptr;
 
     public:
