@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <cstdint>
-namespace fasm::inline hash
+namespace fasm::hash
 {
     class MD5
     {

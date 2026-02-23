@@ -9,8 +9,8 @@ extern "C" int __imp__vsnprintf(char *str, size_t size, const char *fmt, va_list
 {
     return __mingw_vsnprintf(str, size, fmt, ap);
 }
-extern "C" int __imp_accept(int s, struct sockaddr *addr, int *addrlen)
-{
-    return accept(s, addr, addrlen);
-}
+// extern "C" int __imp_accept(int s, struct sockaddr *addr, int *addrlen)
+// {
+//     return accept(s, addr, addrlen);
+// }
 #endif

@@ -1,7 +1,7 @@
+#if __has_include("zlib.h")
 #include "D_complession.h"
 #include <stdexcept>
 #include <vector>
-#if __has_include("zlib.h")
 #include <zlib.h>
 namespace fasm::data
 {

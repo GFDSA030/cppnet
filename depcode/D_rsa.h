@@ -1,12 +1,12 @@
 #pragma once
+#if __has_include("boost/multiprecision/cpp_int.hpp")
 #include <vector>
 #include <cstdint>
 #include <string>
-#if __has_include("boost/multiprecision/cpp_int.hpp")
 #include <boost/multiprecision/cpp_int.hpp>
 
 using boost::multiprecision::cpp_int;
-namespace fasm::inline crypt
+namespace fasm::crypt
 {
     class RSA
     {

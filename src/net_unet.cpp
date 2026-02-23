@@ -2,31 +2,36 @@
 #include <infnc.h>
 #include <string>
 #include <thread>
+#include <mutex>
 
 namespace unet
 {
 
     status netcpp_status = offline;
     size_t netcpp_using_no = 0;
+    static std::mutex netcpp_mtx;
     int netcpp_start() noexcept
     {
-        netcpp_using_no++;
-        if (netcpp_status == offline)
+        std::lock_guard<std::mutex> lock(netcpp_mtx);
+        if (netcpp_using_no == 0)
         {
             netinit();
             netcpp_status = online;
-            return success;
         }
+        netcpp_using_no++;
         return success;
     }
     int netcpp_stop() noexcept
     {
+        std::lock_guard<std::mutex> lock(netcpp_mtx);
+        if (netcpp_using_no == 0)
+            return success;
+
         netcpp_using_no--;
         if ((netcpp_status == online) && (netcpp_using_no == 0))
         {
             netquit();
             netcpp_status = offline;
-            return success;
         }
         return success;
     }
@@ -35,13 +40,11 @@ namespace unet
         if (s == online)
         {
             netcpp_status = s;
-            netcpp_using_no++;
             return success;
         }
         if (s == offline)
         {
             netcpp_status = s;
-            netcpp_using_no--;
             return success;
         }
         return error;

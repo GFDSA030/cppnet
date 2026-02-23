@@ -48,7 +48,7 @@
 #define SHUT_RW 2
 #endif
 
-namespace fasm::inline net
+namespace fasm::net
 {
     int send_crypt(int s, const char *buf, int len, int flags);
     int recv_crypt(int s, char *buf, int len, int flags);

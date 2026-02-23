@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-namespace fasm::inline math
+namespace fasm::math
 {
     std::vector<double> polyFit(const std::vector<std::pair<double, double>> &pts, int deg);
 

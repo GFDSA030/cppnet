@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <string>
-namespace fasm::inline enc
+namespace fasm::enc
 {
     static constexpr char base16_table[] = "0123456789abcdef";
     static constexpr char base32_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";

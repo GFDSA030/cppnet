@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <cstring>
 #include <string>
-namespace fasm::inline id
+namespace fasm::id
 {
     class uuidshort;
     class uuid;

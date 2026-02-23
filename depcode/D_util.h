@@ -3,7 +3,7 @@
 #include <string>
 #include <cstdint>
 
-namespace fasm::inline util
+namespace fasm::util
 {
     std::vector<uint8_t> str2vec(const std::string &s);
     std::string vec2str(const std::vector<uint8_t> &v);

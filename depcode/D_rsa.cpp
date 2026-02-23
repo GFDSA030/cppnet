@@ -1,3 +1,4 @@
+#if __has_include("boost/multiprecision/cpp_int.hpp")
 #include "D_rsa.h"
 
 #include "D_sha.h"
@@ -6,7 +7,6 @@
 #include <random>
 #include <stdexcept>
 
-#if __has_include("boost/multiprecision/cpp_int.hpp")
 namespace fasm::crypt
 {
     // Encrypt / Decrypt

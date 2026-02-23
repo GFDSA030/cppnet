@@ -2,7 +2,7 @@
 #include <string>
 #include <cstdint>
 
-namespace fasm::inline device
+namespace fasm::device
 {
     // ===== CPUID =====
     struct CPUInfo
